@@ -1,0 +1,3 @@
+[submodule "src/service/IdeumService"]
+	path = src/service/IdeumService
+	url = git@github.com:ideum/cs0193-RD-Service.git
