@@ -14,24 +14,22 @@ namespace CoffeeTable.Messaging.Tests
 			MessageCallbackHandler handler = new MessageCallbackHandler();
 			handler.AddCallbacks(new Program());
 
-			Message message = handler.GetMessage(0, "test", new int[] { 1, 2, 3, 4 });
+			Message message = handler.GetMessage(0, "tesT", new int[] { 1, 2, 3, 4 });
 			handler.ReceiveMessage(message);
 
 			Console.ReadKey(true);
 		}
 
-		[CommandHandler("test")]
-		void Bar (Message.SenderInfo sender, int[] data)
+		[CommandHandler("tESt")]
+		void Bar (Message.SenderInfo sender)
 		{
-			Console.WriteLine("received");
-			foreach (int i in data) Console.WriteLine(i);
+			Console.WriteLine("received without data");
 		}
 
-		[CommandHandler("test")]
-		static void Foo(Message.SenderInfo sender, int[] data, int y)
+		[CommandHandler("TESt")]
+		static void Foo(Message.SenderInfo sender)
 		{
-			Console.WriteLine("received statically");
-			foreach (int i in data) Console.WriteLine(i);
+			Console.WriteLine("received statically without data");
 		}
 	}
 }

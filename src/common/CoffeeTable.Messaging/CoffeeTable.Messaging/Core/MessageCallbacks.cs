@@ -41,10 +41,6 @@ namespace CoffeeTable.Messaging.Core
 		/// </summary>
 		public int ExecutionPriority { get; set; }
 
-		/// <summary>
-		/// Constructs a <see cref="CommandHandlerAttribute"/> instance.
-		/// </summary>
-		/// <param name="callbackName">The name of the callback</param>
 		public CommandHandlerAttribute(string callbackName)
 		{
 			Name = callbackName;
@@ -73,7 +69,8 @@ namespace CoffeeTable.Messaging.Core
 		/// <param name="executionPriority">If there are multiple callbacks for a given name, callbacks with a higher execution priority will be executed first.</param>
 		void AddCallback(string commandName, Callback commandCallback, int executionPriority = 0);
 		/// <summary>
-		/// Finds methods in the given object's type that are marked with <see cref="CommandHandlerAttribute"/> and registers them as callbacks that are invoked when a <see cref="Message"/> is received with the appropriate command name.
+		/// <para>Finds methods in the given object's type that are marked with <see cref="CommandHandlerAttribute"/> and registers them as callbacks that are invoked when a <see cref="Message"/> is received with the appropriate command name.</para>
+		/// <para>Implementations of this method should be idempotent.</para>
 		/// </summary>
 		/// <param name="o">The object for whom callbacks will be received.</param>
 		void AddCallbacks(object o);
@@ -110,10 +107,12 @@ namespace CoffeeTable.Messaging.Core
 		}
 
 		private Dictionary<string, List<CallbackInfo>> mCallbackMap;
+		private HashSet<object> mSubscribedObjects;
 
 		public MessageCallbackHandler()
 		{
 			mCallbackMap = new Dictionary<string, List<CallbackInfo>>();
+			mSubscribedObjects = new HashSet<object>();
 		}
 
 		/// <inheritdoc/>
@@ -154,6 +153,10 @@ namespace CoffeeTable.Messaging.Core
 		/// <inheritdoc/>
 		public void AddCallbacks(object o)
 		{
+			if (mSubscribedObjects.Contains(o))
+				return;
+			mSubscribedObjects.Add(o);
+
 			Type oType = o.GetType();
 			MethodInfo[] methods = oType.GetMethods(BindingFlags.Public
 				| BindingFlags.Instance
@@ -184,15 +187,19 @@ namespace CoffeeTable.Messaging.Core
 			}
 		}
 
+		private Delegate GetStaticOrInstanceDelegate (MethodInfo mi, object o, Type delegateType)
+		{
+			if (mi.IsStatic) return Delegate.CreateDelegate(delegateType, mi, false);
+			else return Delegate.CreateDelegate(delegateType, o, mi, false);
+		}
+
 		private bool GetCallbackDelegateFromMethodInfo (MethodInfo mi, object o, out Delegate commandDelegate, out Type commandDataType)
 		{
 			commandDelegate = null;
 			commandDataType = null;
 
 			// try to bind dataless invocation
-			Delegate datalessDelegate;
-			if (mi.IsStatic) datalessDelegate = Delegate.CreateDelegate(typeof(Callback), mi, false);
-			else datalessDelegate = Delegate.CreateDelegate(typeof(Callback), o, mi, false);
+			Delegate datalessDelegate = GetStaticOrInstanceDelegate(mi, o, typeof(Callback));
 			if (datalessDelegate != null)
 			{
 				commandDelegate = datalessDelegate;
@@ -207,9 +214,7 @@ namespace CoffeeTable.Messaging.Core
 								  where p.Position == 1
 								  select p.ParameterType).First();
 			Type dataDelegateType = typeof(Callback<>).MakeGenericType(dataParameterType);
-			Delegate dataDelegate;
-			if (mi.IsStatic) dataDelegate = Delegate.CreateDelegate(dataDelegateType, mi, false);
-			else dataDelegate = Delegate.CreateDelegate(dataDelegateType, o, mi, false);
+			Delegate dataDelegate = GetStaticOrInstanceDelegate(mi, o, dataDelegateType);
 
 			if (dataDelegate != null)
 			{

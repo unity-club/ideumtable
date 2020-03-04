@@ -1,0 +1,14 @@
+C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\bin\Debug\CoffeeTableLauncher.exe.config
+C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\bin\Debug\CoffeeTableLauncher.exe
+C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\bin\Debug\CoffeeTableLauncher.pdb
+C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\obj\Debug\CoffeeTableLauncher.csprojAssemblyReference.cache
+C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\obj\Debug\MainWindow.g.cs
+C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\obj\Debug\App.g.cs
+C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\obj\Debug\CoffeeTableLauncher_MarkupCompile.cache
+C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\obj\Debug\CoffeeTableLauncher_MarkupCompile.lref
+C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\obj\Debug\MainWindow.baml
+C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\obj\Debug\CoffeeTableLauncher.g.resources
+C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\obj\Debug\CoffeeTableLauncher.Properties.Resources.resources
+C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\obj\Debug\CoffeeTableLauncher.csproj.GenerateResource.cache
+C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\obj\Debug\CoffeeTableLauncher.exe
+C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\obj\Debug\CoffeeTableLauncher.pdb
