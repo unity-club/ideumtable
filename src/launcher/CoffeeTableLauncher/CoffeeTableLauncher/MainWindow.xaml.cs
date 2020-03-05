@@ -18,11 +18,16 @@ namespace CoffeeTableLauncher
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
 	/// </summary>
-	public partial class MainWindow : Window
+	public partial class MainWindow
 	{
 		public MainWindow()
 		{
 			InitializeComponent();
+			//ProgressBar.Visibility = Visibility.Hidden;
+			ProgressBar.Value = 100;
+
+			SettingsFlyout.IsOpen = true;
 		}
+
 	}
 }

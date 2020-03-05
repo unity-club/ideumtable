@@ -1,0 +1,42 @@
+﻿<UserControl x:Class="CoffeeTableLauncher.Controls.FileSelector"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:Icons="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:local="clr-namespace:CoffeeTableLauncher.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="50" d:DesignWidth="300">
+    <Border BorderBrush="#FF919191"
+            BorderThickness="1"
+            Height="25">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="40" />
+            </Grid.ColumnDefinitions>
+
+
+            <TextBlock Name="txtFileName"
+                                        Margin="4,0,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Grid.Column="0" />
+
+            <Button Name="btnBrowse"
+                    Click="btnBrowse_Click"
+                    Opacity="0.8"
+                    HorizontalContentAlignment="Center"
+                    ToolTip="Click to open file browser."
+                    Width="40"
+                    Padding="0"
+                    Grid.Column="1"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    FocusVisualStyle="{x:Null}"
+                    Style="{x:Null}">
+                <Icons:PackIconModern Kind="Folder" Width="12" Height="12"/>
+            </Button>
+        </Grid>
+    </Border>
+</UserControl>
