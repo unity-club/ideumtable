@@ -1,7 +1,7 @@
 ﻿CoffeeTableLauncher
 
 
-winexe
+exe
 C#
 .cs
 C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\obj\Debug\
@@ -12,7 +12,7 @@ DEBUG;TRACE
 C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\App.xaml
 2572055055
 
-7-476879358
+877577487
 40981312480
 Controls\FileSelector.xaml;MainWindow.xaml;
 
