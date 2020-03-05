@@ -29,9 +29,9 @@ namespace CoffeeTableLauncher.Controls
 	/// </summary>
 	public partial class FileSelector : UserControl
 	{
-		public static readonly DependencyProperty FileFilterProperty;
-		public static readonly DependencyProperty FileNameProperty;
-		public static readonly DependencyProperty TitleProperty;
+		public static readonly DependencyProperty FileFilterProperty = DependencyProperty.Register("FileFilter", typeof(string), typeof(FileSelector), new FrameworkPropertyMetadata(null, (PropertyChangedCallback)null));
+		public static readonly DependencyProperty FileNameProperty = DependencyProperty.Register("FileName", typeof(string), typeof(FileSelector), new FrameworkPropertyMetadata("", (d, e) => { FileSelector owner = (FileSelector)d; owner.UpdateFileNameDisplay(); }));
+		public static readonly DependencyProperty TitleProperty = DependencyProperty.Register("Title", typeof(string), typeof(FileSelector), new FrameworkPropertyMetadata("Choose a file...", null));
 
 		public string FileFilter
 		{
@@ -51,27 +51,6 @@ namespace CoffeeTableLauncher.Controls
 			set { SetValue(TitleProperty, value); }
 		}
 
-		static FileSelector()
-		{
-			/* Register dependency properties */
-
-			/* File Name Property */
-			FrameworkPropertyMetadata md = new FrameworkPropertyMetadata("", (d, e) => {
-				FileSelector owner = (FileSelector)d;
-				owner.UpdateFileNameDisplay();
-			});
-			FileNameProperty = DependencyProperty.Register("FileName", typeof(string), typeof(FileSelector), md);
-
-			/* File Filter Property */
-			md = new FrameworkPropertyMetadata(null, (PropertyChangedCallback) null);
-			FileFilterProperty = DependencyProperty.Register("FileFilter", typeof(string), typeof(FileSelector), md);
-
-			/* Dialog Title Property */
-			md = new FrameworkPropertyMetadata("Choose a file...", null);
-			TitleProperty = DependencyProperty.Register("Title", typeof(string), typeof(FileSelector), md);
-		}
-
-
 		public FileSelector()
 		{
 			InitializeComponent();
@@ -81,9 +60,9 @@ namespace CoffeeTableLauncher.Controls
 		{
 			string fileName = FileName;
 
-			if (String.IsNullOrEmpty(fileName))
+			if (string.IsNullOrEmpty(fileName))
 			{
-				txtFileName.Text = String.Empty;
+				txtFileName.Text = string.Empty;
 				return;
 			}
 

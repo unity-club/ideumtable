@@ -24,10 +24,8 @@ namespace CoffeeTableLauncher
 		public MainWindow()
 		{
 			InitializeComponent();
-			//ProgressBar.Visibility = Visibility.Hidden;
+			ProgressBar.Visibility = Visibility.Hidden;
 			ProgressBar.Value = 100;
-
-			SettingsFlyout.IsOpen = true;
 		}
 
 	}

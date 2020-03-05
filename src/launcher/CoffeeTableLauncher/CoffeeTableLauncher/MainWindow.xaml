@@ -15,7 +15,21 @@
         <Controls:FlyoutsControl>
             <Controls:Flyout Header="Settings" Position="Right" x:Name="SettingsFlyout" Background="White" IsModal="True" Width="300">
                 <StackPanel Margin="10">
-                    <UserControls:FileSelector Title="Select path to service executable..."/>
+                    <Label Content="Service Executable"/>
+                    <UserControls:FileSelector Height="25" Title="Select path to service executable..."/>
+                    <Label Content="Service TCP"/>
+                    <Grid Width="Auto" Height="25" >
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="8*"/>
+                            <ColumnDefinition Width="2*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Padding="0,0,5,0">
+                            <TextBox  VerticalAlignment="Center" HorizontalAlignment="Stretch" Height="Auto"/>
+                        </Border>
+                        <Border Grid.Column="1" Padding="5,0,0,0">
+                            <TextBox VerticalAlignment="Center" HorizontalAlignment="Stretch" Height="Auto"/>
+                        </Border>
+                    </Grid>
                 </StackPanel>
             </Controls:Flyout>
         </Controls:FlyoutsControl>
