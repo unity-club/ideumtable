@@ -159,6 +159,14 @@ namespace CoffeeTableLauncher
 				}
 				mAppBindings.Add(binding);
 			}
+
+			// alphabetize this list
+			mAppBindings.Sort((a, b) => a.Name.CompareTo(b.Name));
+
+			// move the sidebar and homescreen apps to the front of the list
+			mAppBindings.PrependElement(x => x.Type == ApplicationFileManifest.ApplicationType.Homescreen);
+			mAppBindings.PrependElement(x => x.Type == ApplicationFileManifest.ApplicationType.Sidebar);
+
 			ItemList.ItemsSource = null;
 			ItemList.ItemsSource = mAppBindings;
 
