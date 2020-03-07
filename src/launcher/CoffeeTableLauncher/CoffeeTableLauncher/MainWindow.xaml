@@ -93,8 +93,15 @@
                             Content="Cancel"/>
                     </StackPanel>
                 </Grid>
-
-
+            </Controls:Flyout>
+            <Controls:Flyout x:Name="AlertFlyout" Position="Bottom"
+                             CloseButtonVisibility="Collapsed"
+                             TitleVisibility="Collapsed"
+                             IsPinned="False"
+                             Height="75"
+                             Background="{DynamicResource AccentColorBrush}">
+                <TextBlock Name="AlertFlyout_Text" VerticalAlignment="Center"
+                           Margin="20" Text="Alert" Foreground="White" />
             </Controls:Flyout>
         </Controls:FlyoutsControl>
     </Controls:MetroWindow.Flyouts>
@@ -160,6 +167,25 @@
                                     <TextBlock Text="{Binding Authors}" TextWrapping="WrapWithOverflow" Foreground="Gray"/>
                                 </WrapPanel>
                             </Grid>
+                            <Button Width="16"
+                                    Height="16"
+                                    Padding="0"
+                                    Margin="10"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Style="{x:Null}"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Click="App_OpenFolder"
+                                    Tag="{Binding}">
+                                <Button.Content>
+                                    <Icons:PackIconModern Kind="Folder"
+                                                            Height="12"
+                                                            Width="12"
+                                                            VerticalAlignment="Center"
+                                                            HorizontalAlignment="Center" />
+                                </Button.Content>
+                            </Button>
                         </Grid>
                     </Border>
                 </DataTemplate>

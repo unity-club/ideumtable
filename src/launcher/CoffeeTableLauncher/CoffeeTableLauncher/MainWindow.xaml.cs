@@ -36,10 +36,15 @@ namespace CoffeeTableLauncher
 		private const string HEADER_APPLICATION_ADD = "Add application";
 		private const string HEADER_APPLICATION_UPDATE = "Update application";
 
+		private const string MANIFEST_ICON = "icon";
+		private const string MANIFEST = "manifest.json";
+
 		private string mPendingAppPath = null;
 		private string mPendingAppName = null;
 
 		private List<ApplicationData> mAppBindings;
+
+		private FileSystemWatcher mFileWatcher;
 
 		static MainWindow()
 		{
@@ -55,15 +60,69 @@ namespace CoffeeTableLauncher
 
 			ServicePathSelector.OnPathChanged += Manifest_SaveServiceExecutablePath;
 
-			Manifest_Setup();
-			RebuildAppList();
+			WatchRootDirectoryForChanges();
+
+			RefreshApplicationData();
+		}
+
+		private void WatchRootDirectoryForChanges ()
+		{
+			// Set up a file system watcher to refresh the application data
+			// any time the coffee table directory is modified
+			mFileWatcher = new FileSystemWatcher();
+			mFileWatcher.Path = RootFolder;
+			mFileWatcher.IncludeSubdirectories = true;
+
+			mFileWatcher.NotifyFilter = NotifyFilters.Size | NotifyFilters.LastWrite;
+
+			mFileWatcher.Filter = string.Empty;
+
+			// Add event handlers.
+			mFileWatcher.Changed += RefreshApplicationData;
+			mFileWatcher.Created += RefreshApplicationData;
+			mFileWatcher.Deleted += RefreshApplicationData;
+			mFileWatcher.Renamed += RefreshApplicationData;
+
+			// Begin watching.
+			mFileWatcher.EnableRaisingEvents = true;
+		}
+
+		private async void ShowAlert (string message)
+		{
+			AlertFlyout_Text.Text = message;
+			AlertFlyout.IsOpen = true;
+			await Task.Delay(2500);
+			AlertFlyout.IsOpen = false;
+		}
+
+		// Finds all the applications again and rebuilds the list of applications
+		// Also refreshes the path to the service executable
+		private void RefreshApplicationData(object sender = null, FileSystemEventArgs e = null)
+		{
+			// Invoke this method on the UI thread to insure that the FileSystemWatcher
+			// properly interacts with the UI.
+			Dispatcher.Invoke(new Action(() =>
+			{
+				// Using this try-finally loop here is a bit hacky. Solution found at:
+				// https://stackoverflow.com/questions/1764809/filesystemwatcher-changed-event-is-raised-twice
+				try
+				{
+					mFileWatcher.EnableRaisingEvents = false;
+					Manifest_Refresh();
+					RebuildAppList();
+				}
+				finally
+				{
+					mFileWatcher.EnableRaisingEvents = true;
+				}
+			}));
 		}
 
 		#region Coffee Table Manifest
 
 		// Set up the Coffee Table file manifest by saving the path to the launcher
 		// and loading the path to the service if it exists
-		private void Manifest_Setup ()
+		private void Manifest_Refresh ()
 		{
 			CoffeeTableFileManifest manifest = Extensions.GetCoffeeTableManifest();
 			manifest.LauncherPath = Process.GetCurrentProcess().MainModule.FileName;
@@ -106,10 +165,10 @@ namespace CoffeeTableLauncher
 			if (failedBindings.Count > 0)
 			{
 				string failedApps = string.Empty;
-				for (int i = 0; i < failedApps.Count(); i++)
+				for (int i = 0; i < failedBindings.Count(); i++)
 				{
-					failedApps += failedApps[i];
-					if (i < failedApps.Count() - 1) failedApps += ", ";
+					failedApps += failedBindings[i];
+					if (i < failedBindings.Count() - 1) failedApps += ", ";
 				}
 				this.ShowMessageAsync("Failed to load apps", $"Failed to show the following apps: {failedApps}");
 			}
@@ -148,7 +207,16 @@ namespace CoffeeTableLauncher
 				Directory.Delete(Path.Combine(AppsFolder, data.Name.ToLower()), true);
 				RebuildAppList();
 				ApplicationFlyout.IsOpen = false;
+				ShowAlert($"Uninstalled {data.Name}");
 			}
+		}
+
+		private void App_OpenFolder(object sender, RoutedEventArgs e)
+		{
+			Button b = (sender as Button);
+			ApplicationData data = b.Tag as ApplicationData;
+			string appDirectory = Path.Combine(AppsFolder, data.Name);
+			if (Directory.Exists(appDirectory)) Process.Start(appDirectory);
 		}
 
 		#endregion
@@ -161,6 +229,7 @@ namespace CoffeeTableLauncher
 			public string Name { get; set; }
 			public string Authors { get; set; }
 			public string Description { get; set; }
+			public ApplicationFileManifest.ApplicationType Type;
 		}
 
 		private async Task<ApplicationData> ExtractApplicationData (string applicationPath)
@@ -186,7 +255,7 @@ namespace CoffeeTableLauncher
 			{
 				// Get the manifest file
 				ZipEntry manifestEntry = (from entry in zip
-										  where entry.FileName.Equals("manifest.json", StringComparison.OrdinalIgnoreCase)
+										  where entry.FileName.Equals(MANIFEST, StringComparison.OrdinalIgnoreCase)
 										  select entry).FirstOrDefault();
 				if (manifestEntry == null)
 				{
@@ -224,7 +293,6 @@ namespace CoffeeTableLauncher
 				bool badFormattingSentinel = false;
 				if (string.IsNullOrWhiteSpace(appManifest.Name)) badFormattingSentinel = true;
 				if (string.IsNullOrWhiteSpace(appManifest.ExecutablePath)) badFormattingSentinel = true;
-				if (string.IsNullOrWhiteSpace(appManifest.IconPath)) badFormattingSentinel = true;
 
 				if (badFormattingSentinel)
 				{
@@ -234,7 +302,7 @@ namespace CoffeeTableLauncher
 
 				// Get the app icon image
 				ZipEntry iconEntry = (from entry in zip.Entries
-									  where entry.FileName.Equals(appManifest.IconPath)
+									  where Path.GetFileNameWithoutExtension(entry.FileName).Equals(MANIFEST_ICON, StringComparison.OrdinalIgnoreCase)
 									  select entry).FirstOrDefault();
 				if (iconEntry == null)
 				{
@@ -261,15 +329,20 @@ namespace CoffeeTableLauncher
 				return null;
 			DirectoryInfo appDirectory = new DirectoryInfo(appDirectoryPath);
 			string manifestFile = (from file in appDirectory.EnumerateFiles()
-									 where file.Name.Equals("manifest.json", StringComparison.OrdinalIgnoreCase)
+									 where file.Name.Equals(MANIFEST, StringComparison.OrdinalIgnoreCase)
 									 select file).FirstOrDefault()?.FullName;
 			ApplicationFileManifest appManifest;
 			try { appManifest = JsonConvert.DeserializeObject<ApplicationFileManifest>(File.ReadAllText(manifestFile)); }
 			catch { return null; }
 
 			// Get app icon
+			// First we must find the location of the icon file
+			string iconFile = (from file in appDirectory.EnumerateFiles()
+							   where Path.GetFileNameWithoutExtension(file.Name).Equals(MANIFEST_ICON, StringComparison.OrdinalIgnoreCase)
+							   select file).FirstOrDefault()?.FullName;
+			if (iconFile == null) return null;
 			byte[] iconBytes;
-			try { iconBytes = File.ReadAllBytes(Path.Combine(appDirectoryPath, appManifest.IconPath)); }
+			try { iconBytes = File.ReadAllBytes(iconFile); }
 			catch { return null; }
 			BitmapImage appIcon = new BitmapImage();
 			using (MemoryStream iconStream = new MemoryStream(iconBytes))
@@ -289,7 +362,8 @@ namespace CoffeeTableLauncher
 			{
 				Name = appManifest.Name,
 				Authors = appManifest.Author,
-				Description = appManifest.Description
+				Description = appManifest.Description,
+				Type = appManifest.Type
 			};
 		}
 
@@ -384,18 +458,15 @@ namespace CoffeeTableLauncher
 			}
 
 			ProgressBar.Value = 0;
-
-			mPendingAppPath = null;
-			mPendingAppName = null;
 			AddApplicationFlyout.IsOpen = false;
+
+			ShowAlert($"Added {mPendingAppName}");
 
 			RebuildAppList();
 		}
 
 		private void AddApp_Cancel(object sender, RoutedEventArgs e)
 		{
-			mPendingAppPath = null;
-			mPendingAppName = null;
 			AddApplicationFlyout.IsOpen = false;
 		}
 
@@ -412,6 +483,14 @@ namespace CoffeeTableLauncher
 				|| !File.Exists(manifest.ServiceExecutablePath))
 			{
 				await this.ShowMessageAsync(HEADER_DEPLOY_FAILURE, "A valid path to the service executable could not be found. Did you provide one in the settings page?");
+				return;
+			}
+
+			// Check that there is a sidebar and a homescreen application loaded
+			if (!mAppBindings.Any(x => x.Type == ApplicationFileManifest.ApplicationType.Homescreen)
+				|| !mAppBindings.Any(x => x.Type == ApplicationFileManifest.ApplicationType.Sidebar))
+			{
+				await this.ShowMessageAsync(HEADER_DEPLOY_FAILURE, "No sidebar application or homescreen application could be found. Have you added them?");
 				return;
 			}
 

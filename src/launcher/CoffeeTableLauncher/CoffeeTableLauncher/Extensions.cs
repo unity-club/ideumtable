@@ -23,12 +23,12 @@ namespace CoffeeTableLauncher
 				try { return JsonConvert.DeserializeObject<CoffeeTableFileManifest>(json); }
 				catch (JsonException) { return new CoffeeTableFileManifest(); }
 			}
-		} 
+		}
 
 		public static void Set(this CoffeeTableFileManifest manifest)
 		{
 			if (!Directory.Exists(ManifestPathRoot)) Directory.CreateDirectory(ManifestPathRoot);
-			string json = JsonConvert.SerializeObject(manifest);
+			string json = JsonConvert.SerializeObject(manifest, Formatting.Indented);
 			File.WriteAllText(ManifestPath, json);
 		}
 	}
