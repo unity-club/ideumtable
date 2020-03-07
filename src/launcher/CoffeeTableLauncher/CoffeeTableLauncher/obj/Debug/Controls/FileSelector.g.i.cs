@@ -70,7 +70,7 @@ namespace CoffeeTableLauncher.Controls {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/CoffeeTableLauncher;component/controls/fileselector.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/CoffeeTable;component/controls/fileselector.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\Controls\FileSelector.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

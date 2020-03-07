@@ -9,17 +9,19 @@
                       xmlns:UserControls="clr-namespace:CoffeeTableLauncher.Controls"
                       mc:Ignorable="d"
                       Title="Coffee Table Launcher" Height="450" Width="900"
-                      TitlebarHeight="40" Padding="10">
+                      TitlebarHeight="40" Padding="10"
+                      WindowTitleBrush="Black"
+                      BorderThickness="0">
 
     <Controls:MetroWindow.Flyouts>
         <Controls:FlyoutsControl>
-            <Controls:Flyout Header="Settings" Position="Right" x:Name="SettingsFlyout" Background="White" IsModal="True" Width="300">
+            <Controls:Flyout Header="Settings" Position="Right" x:Name="SettingsFlyout" IsModal="True" Width="300">
                 <StackPanel Margin="10">
                     <Label Content="Service Executable"/>
                     <UserControls:FileSelector x:Name="ServicePathSelector" Height="25" Title="Select path to service executable..." FileFilter="Executable files|*.exe"/>
                 </StackPanel>
             </Controls:Flyout>
-            <Controls:Flyout Header="Temp" Position="Left" x:Name="ApplicationFlyout" Background="White" IsModal="True" Width="300">
+            <Controls:Flyout Header="Temp" Position="Left" x:Name="ApplicationFlyout" IsModal="True" Width="300">
                 <Grid>
                     <StackPanel Margin="20">
                         <Grid Height="150">
@@ -42,7 +44,7 @@
                         Grid.Column="1"
                         Width="75"
                         Content="Uninstall"
-                        Background="#FFE68989"
+                        Background="{StaticResource AccentColorBrush}"
                         BorderThickness="0"
                         Height="30"
                         Style="{x:Null}"
@@ -71,7 +73,7 @@
                     <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="10" Orientation="Horizontal">
                         <StackPanel.Resources>
                             <Style TargetType="{x:Type Button}">
-                                <Setter Property="Background" Value="#ebebeb"/>
+                                <Setter Property="Background" Value="#FF616161"/>
                                 <Setter Property="BorderThickness" Value="0"/>
                                 <Setter Property="Height" Value="30"/>
                             </Style>
@@ -148,7 +150,7 @@
             </ListBox.ItemsPanel>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Border BorderThickness="0.25" BorderBrush="Gray" Tag="{Binding}">
+                    <Border x:Name="ItemBorder" BorderThickness="0.25" BorderBrush="Gray" Tag="{Binding}">
                         <Grid>
                             <Grid Name="ItemGrid" HorizontalAlignment="Stretch" Height="50" Margin="20">
                                 <Grid.ColumnDefinitions>
@@ -163,8 +165,8 @@
                                     </Ellipse>
                                 </Grid>
                                 <WrapPanel Orientation="Vertical" VerticalAlignment="Center" Grid.Column="1" Margin="25,0,0,0">
-                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="Gray"/>
-                                    <TextBlock Text="{Binding Authors}" TextWrapping="WrapWithOverflow" Foreground="Gray"/>
+                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="White"/>
+                                    <TextBlock Text="{Binding Authors}" TextWrapping="WrapWithOverflow" Foreground="White"/>
                                 </WrapPanel>
                             </Grid>
                             <Button Width="16"

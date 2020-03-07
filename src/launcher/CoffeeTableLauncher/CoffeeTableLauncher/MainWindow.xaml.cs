@@ -56,6 +56,8 @@ namespace CoffeeTableLauncher
 		{
 			InitializeComponent();
 
+			ProgressBar.Visibility = Visibility.Hidden;
+
 			mAppBindings = new List<ApplicationData>();
 
 			ServicePathSelector.OnPathChanged += Manifest_SaveServiceExecutablePath;
@@ -398,7 +400,7 @@ namespace CoffeeTableLauncher
 		{
 			// Ask the user to select a file
 			OpenFileDialog dlg = new OpenFileDialog();
-			dlg.Title = "Add an application...";
+			dlg.Title = "Add or update an application";
 			dlg.Filter = "Table App|*.tableapp;*.zip";
 			dlg.CheckFileExists = true;
 			dlg.CheckPathExists = true;
@@ -455,6 +457,7 @@ namespace CoffeeTableLauncher
 			Directory.CreateDirectory(newAppPath);
 			using (ZipFile zip = ZipFile.Read(mPendingAppPath))
 			{
+				ProgressBar.Visibility = Visibility.Visible;
 				zip.ExtractProgress += (o, args) =>
 				{
 					if (args.TotalBytesToTransfer > 0)
@@ -463,9 +466,10 @@ namespace CoffeeTableLauncher
 					}
 				};
 				zip.ExtractAll(newAppPath);
+				ProgressBar.Visibility = Visibility.Hidden;
+				ProgressBar.Value = 0;
 			}
 
-			ProgressBar.Value = 0;
 			AddApplicationFlyout.IsOpen = false;
 
 			ShowAlert($"Added {mPendingAppName}");
