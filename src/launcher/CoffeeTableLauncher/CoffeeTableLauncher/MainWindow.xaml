@@ -111,7 +111,7 @@
                     <Icons:PackIconModern Width="16" Height="16" Kind="Settings"/>
                 </StackPanel>
             </ToggleButton>
-            <Button>
+            <Button Click="LaunchService">
                 <StackPanel Orientation="Horizontal">
                     <Icons:PackIconModern Width="16" Height="16" Kind="App" />
                     <TextBlock Margin="4 0 0 0" VerticalAlignment="Center" Text="Deploy" />

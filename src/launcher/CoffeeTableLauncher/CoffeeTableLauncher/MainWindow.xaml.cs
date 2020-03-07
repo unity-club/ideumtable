@@ -19,6 +19,7 @@ using MahApps.Metro.Controls.Dialogs;
 using System.IO;
 using CoffeeTable.Manifests;
 using Newtonsoft.Json;
+using System.ComponentModel;
 
 namespace CoffeeTableLauncher
 {
@@ -30,7 +31,8 @@ namespace CoffeeTableLauncher
 		private static readonly string RootFolder;
 		private static readonly string AppsFolder;
 
-		private const string HEADER_FAILURE = "Failed to add your app";
+		private const string HEADER_DEPLOY_FAILURE = "Failed to deploy";
+		private const string HEADER_APPLICATION_ADD_FAILURE = "Failed to add your app";
 		private const string HEADER_APPLICATION_ADD = "Add application";
 		private const string HEADER_APPLICATION_UPDATE = "Update application";
 
@@ -166,7 +168,7 @@ namespace CoffeeTableLauncher
 			// Check that file exists
 			if (!File.Exists(applicationPath))
 			{
-				await this.ShowMessageAsync(HEADER_FAILURE, "The file you selected does not exist");
+				await this.ShowMessageAsync(HEADER_APPLICATION_ADD_FAILURE, "The file you selected does not exist");
 				return null;
 			}
 
@@ -177,7 +179,7 @@ namespace CoffeeTableLauncher
 			try { zip = ZipFile.Read(applicationPath); }
 			catch
 			{
-				await this.ShowMessageAsync(HEADER_FAILURE, "The file you added could not be read");
+				await this.ShowMessageAsync(HEADER_APPLICATION_ADD_FAILURE, "The file you added could not be read");
 				return null;
 			}
 			using (zip)
@@ -188,7 +190,7 @@ namespace CoffeeTableLauncher
 										  select entry).FirstOrDefault();
 				if (manifestEntry == null)
 				{
-					await this.ShowMessageAsync(HEADER_FAILURE, "The app you added does not contain a manifest.json. Did you build it correctly?");
+					await this.ShowMessageAsync(HEADER_APPLICATION_ADD_FAILURE, "The app you added does not contain a manifest.json. Did you build it correctly?");
 					return null;
 				}
 
@@ -206,7 +208,7 @@ namespace CoffeeTableLauncher
 				}
 				catch
 				{
-					await this.ShowMessageAsync(HEADER_FAILURE, "Could not read your application's manifest.");
+					await this.ShowMessageAsync(HEADER_APPLICATION_ADD_FAILURE, "Could not read your application's manifest.");
 					return null;
 				}
 
@@ -236,7 +238,7 @@ namespace CoffeeTableLauncher
 									  select entry).FirstOrDefault();
 				if (iconEntry == null)
 				{
-					await this.ShowMessageAsync(HEADER_FAILURE, "The selected app did not have an icon.");
+					await this.ShowMessageAsync(HEADER_APPLICATION_ADD_FAILURE, "The selected app did not have an icon.");
 					return null;
 				}
 
@@ -352,7 +354,7 @@ namespace CoffeeTableLauncher
 
 		private async void AddApp_BadFormattingError()
 		{
-			await this.ShowMessageAsync(HEADER_FAILURE, "This app's manifest.json is improperly formatted or is missing required fields.");
+			await this.ShowMessageAsync(HEADER_APPLICATION_ADD_FAILURE, "This app's manifest.json is improperly formatted or is missing required fields.");
 		}
 
 		private void AddApp_Confirm(object sender, RoutedEventArgs e)
@@ -395,6 +397,38 @@ namespace CoffeeTableLauncher
 			mPendingAppPath = null;
 			mPendingAppName = null;
 			AddApplicationFlyout.IsOpen = false;
+		}
+
+		#endregion
+
+		#region Deploy
+
+		private async void LaunchService(object sender, RoutedEventArgs e)
+		{
+			CoffeeTableFileManifest manifest = Extensions.GetCoffeeTableManifest();
+
+			if (string.IsNullOrWhiteSpace(manifest.ServiceExecutablePath)
+				|| !manifest.ServiceExecutablePath.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)
+				|| !File.Exists(manifest.ServiceExecutablePath))
+			{
+				await this.ShowMessageAsync(HEADER_DEPLOY_FAILURE, "A valid path to the service executable could not be found. Did you provide one in the settings page?");
+				return;
+			}
+
+			try
+			{
+				// Start the service and exit the current application
+				Process.Start(manifest.ServiceExecutablePath);
+				Application.Current.Shutdown();
+			} catch (Exception ex) {
+				if (ex is Win32Exception || ex is ObjectDisposedException)
+				{
+					await this.ShowMessageAsync(HEADER_DEPLOY_FAILURE, "Failed to start the service process.");
+					return;
+				}
+
+				throw;
+			}
 		}
 
 		#endregion
