@@ -89,3 +89,8 @@ C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\b
 C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\obj\Debug\Controls\FileSelector.g.cs
 C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\obj\Debug\GeneratedInternalTypeHelper.g.cs
 C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\obj\Debug\Controls\FileSelector.baml
+C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\bin\Debug\Newtonsoft.Json.xml
+C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\bin\Debug\DotNetZip.dll
+C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\bin\Debug\DotNetZip.pdb
+C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\bin\Debug\DotNetZip.xml

@@ -1,0 +1,7 @@
+{
+  "Name": "Chess",
+  "Author": "Jacob Roberts-Baca",
+  "Description": "A simple chess game",
+  "ExecutablePath": "executable.exe",
+  "IconPath": "ChessIcon.png"
+}

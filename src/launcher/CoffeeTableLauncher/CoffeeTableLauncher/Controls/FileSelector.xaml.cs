@@ -30,7 +30,12 @@ namespace CoffeeTableLauncher.Controls
 	public partial class FileSelector : UserControl
 	{
 		public static readonly DependencyProperty FileFilterProperty = DependencyProperty.Register("FileFilter", typeof(string), typeof(FileSelector), new FrameworkPropertyMetadata(null, (PropertyChangedCallback)null));
-		public static readonly DependencyProperty FileNameProperty = DependencyProperty.Register("FileName", typeof(string), typeof(FileSelector), new FrameworkPropertyMetadata("", (d, e) => { FileSelector owner = (FileSelector)d; owner.UpdateFileNameDisplay(); }));
+		public static readonly DependencyProperty FileNameProperty = DependencyProperty.Register("FileName", typeof(string), typeof(FileSelector), new FrameworkPropertyMetadata("",
+			(d, e) => {
+				FileSelector owner = (FileSelector)d;
+				owner.UpdateFileNameDisplay();
+				owner.OnPathChanged?.Invoke(owner, null);
+			}));
 		public static readonly DependencyProperty TitleProperty = DependencyProperty.Register("Title", typeof(string), typeof(FileSelector), new FrameworkPropertyMetadata("Choose a file...", null));
 
 		public string FileFilter
@@ -50,6 +55,8 @@ namespace CoffeeTableLauncher.Controls
 			get { return (string)GetValue(TitleProperty); }
 			set { SetValue(TitleProperty, value); }
 		}
+
+		public event EventHandler<RoutedEventArgs> OnPathChanged;
 
 		public FileSelector()
 		{
@@ -71,10 +78,11 @@ namespace CoffeeTableLauncher.Controls
 
 		private void btnBrowse_Click(object sender, RoutedEventArgs e)
 		{
-			FileDialog dlg = new OpenFileDialog();
+			OpenFileDialog dlg = new OpenFileDialog();
 
 			dlg.Filter = FileFilter;
 			dlg.Title = Title;
+			dlg.Multiselect = false;
 			bool? result = dlg.ShowDialog();
 			if (result == true) FileName = dlg.FileName;
 		}

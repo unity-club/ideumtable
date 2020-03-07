@@ -8,28 +8,100 @@
                       xmlns:Icons="http://metro.mahapps.com/winfx/xaml/iconpacks"
                       xmlns:UserControls="clr-namespace:CoffeeTableLauncher.Controls"
                       mc:Ignorable="d"
-                      Title="Coffee Table Launcher" Height="450" Width="850"
-                      TitlebarHeight="40" Padding="10"
-                      SizeChanged="MetroWindow_SizeChanged">
+                      Title="Coffee Table Launcher" Height="450" Width="900"
+                      TitlebarHeight="40" Padding="10">
 
     <Controls:MetroWindow.Flyouts>
         <Controls:FlyoutsControl>
             <Controls:Flyout Header="Settings" Position="Right" x:Name="SettingsFlyout" Background="White" IsModal="True" Width="300">
                 <StackPanel Margin="10">
                     <Label Content="Service Executable"/>
-                    <UserControls:FileSelector Height="25" Title="Select path to service executable..."/>
-                    <Label Content="Service TCP Port"/>
-                    <TextBox VerticalAlignment="Center" HorizontalAlignment="Stretch" Height="Auto"/>
-                    <Label Content="Service HTTP Port"/>
-                    <TextBox VerticalAlignment="Center" HorizontalAlignment="Stretch" Height="Auto"/>
+                    <UserControls:FileSelector x:Name="ServicePathSelector" Height="25" Title="Select path to service executable..." FileFilter="Executable files|*.exe"/>
                 </StackPanel>
+            </Controls:Flyout>
+            <Controls:Flyout Header="Temp" Position="Left" x:Name="ApplicationFlyout" Background="White" IsModal="True" Width="300">
+                <Grid>
+                    <StackPanel Margin="20">
+                        <Grid Height="150">
+                            <Ellipse Height="100" Width="100" VerticalAlignment="Center" HorizontalAlignment="Center"> 
+                                <Ellipse.Fill>
+                                    <ImageBrush x:Name="App_Icon"/>
+                                </Ellipse.Fill>
+                            </Ellipse>
+                        </Grid>
+                        <TextBlock Name="App_Name" Text="Application" FontSize="16" FontWeight="SemiBold"/>
+                        <TextBlock Name="App_Author" Text="By Jacob Roberts-Baca" Foreground="Gray" FontWeight="Normal"/>
+                        <TextBlock Name="App_Description" TextWrapping="WrapWithOverflow" Foreground="Gray" FontWeight="Normal">
+                            In publishing and graphic design, Lorem ipsum is a placeholder text commonly used to demonstrate the visual form of a document or a typeface without relying on meaningful content.
+                        </TextBlock>
+                    </StackPanel>
+                    <Button
+                        VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="15"
+                        Click="App_Uninstall"
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        Width="75"
+                        Content="Uninstall"
+                        Background="#FFE68989"
+                        BorderThickness="0"
+                        Height="30"
+                        Style="{x:Null}"
+                        FocusVisualStyle="{x:Null}"/>
+                </Grid>
+            </Controls:Flyout>
+            <Controls:Flyout Header="Add Application"
+                             Position="{Binding ElementName=ApplicationFlyout, Path=Position}"
+                             x:Name="AddApplicationFlyout"
+                             Background="{Binding ElementName=ApplicationFlyout, Path=Background}"
+                             IsModal="True"
+                             Width="{Binding ElementName=ApplicationFlyout, Path=Width}">
+                <Grid>
+                    <StackPanel Margin="20">
+                        <Grid Height="150">
+                            <Ellipse Height="100" Width="100" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <Ellipse.Fill>
+                                    <ImageBrush x:Name="AddApp_AppIcon" ImageSource="C:\Users\Jacob\Pictures\leaf-ppx.png"/>
+                                </Ellipse.Fill>
+                            </Ellipse>
+                        </Grid>
+                        <TextBlock x:Name="AddApp_AppName" Text="Application" FontSize="16" FontWeight="DemiBold"/>
+                        <TextBlock x:Name="AddApp_AppAuthor" Text="By Jacob Roberts-Baca" Foreground="Gray"/>
+                        <TextBlock x:Name="AddApp_AppDescription" Text="By Jacob Roberts-Baca" Foreground="Gray" TextWrapping="WrapWithOverflow"/>
+                    </StackPanel>
+                    <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="10" Orientation="Horizontal">
+                        <StackPanel.Resources>
+                            <Style TargetType="{x:Type Button}">
+                                <Setter Property="Background" Value="#ebebeb"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="Height" Value="30"/>
+                            </Style>
+                        </StackPanel.Resources>
+                        <Button
+                            Click="AddApp_Confirm"
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            Width="75"
+                            Margin="5"
+                            Content="Confirm"
+                            Background="{DynamicResource AccentColorBrush}"/>
+                        <Button
+                            Click="AddApp_Cancel"
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            Width="75"
+                            Margin="5"
+                            Content="Cancel"/>
+                    </StackPanel>
+                </Grid>
+
+
             </Controls:Flyout>
         </Controls:FlyoutsControl>
     </Controls:MetroWindow.Flyouts>
 
     <Controls:MetroWindow.RightWindowCommands>
         <Controls:WindowCommands>
-            <Button>
+            <Button Click="AddApplication_Click">
                 <StackPanel Orientation="Horizontal">
                     <Icons:PackIconModern Width="12" Height="12" Kind="Add" />
                 </StackPanel>
@@ -48,13 +120,18 @@
         </Controls:WindowCommands>
     </Controls:MetroWindow.RightWindowCommands>
 
-    <DockPanel VerticalAlignment="Stretch">
-        <Controls:MetroProgressBar VerticalAlignment="Top" IsIndeterminate="False" x:Name="ProgressBar" Foreground="{DynamicResource AccentColorBrush}"/>
-        <ListBox ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Name="ItemList">
+    <Grid VerticalAlignment="Stretch">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Controls:MetroProgressBar Grid.Row="0" VerticalAlignment="Top" x:Name="ProgressBar" Foreground="{DynamicResource AccentColorBrush}"/>
+        <ListBox Grid.Row="1" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Name="ItemList" SelectionChanged="ItemList_SelectionChanged">
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
                     <Setter Property="Padding" Value="0"/>
-                    <Setter Property="Margin" Value="6"/>
+                    <Setter Property="Margin" Value="5"/>
+                    <Setter Property="VerticalAlignment" Value="Top"/>
                 </Style>
             </ListBox.ItemContainerStyle>
             <ListBox.ItemsPanel>
@@ -64,43 +141,31 @@
             </ListBox.ItemsPanel>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Border BorderThickness="0.25" BorderBrush="Gray">
+                    <Border BorderThickness="0.25" BorderBrush="Gray" Tag="{Binding}">
                         <Grid>
-                            <Grid Name="ItemGrid" HorizontalAlignment="Stretch" Height="100">
+                            <Grid Name="ItemGrid" HorizontalAlignment="Stretch" Height="50" Margin="20">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="{Binding ElementName=ItemGrid, Path=ActualHeight}"/>
                                     <ColumnDefinition Width="2*"/>
                                 </Grid.ColumnDefinitions>
-                                <Grid Grid.Column="0" Margin="10">
+                                <Grid Grid.Column="0">
                                     <Ellipse Height="Auto" Width="Auto">
                                         <Ellipse.Fill>
-                                            <ImageBrush ImageSource="C:\Users\Jacob\Pictures\index.jfif"/>
+                                            <ImageBrush ImageSource="{Binding Icon}"/>
                                         </Ellipse.Fill>
                                     </Ellipse>
                                 </Grid>
+                                <WrapPanel Orientation="Vertical" VerticalAlignment="Center" Grid.Column="1" Margin="25,0,0,0">
+                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="Gray"/>
+                                    <TextBlock Text="{Binding Authors}" TextWrapping="WrapWithOverflow" Foreground="Gray"/>
+                                </WrapPanel>
                             </Grid>
-                            <Button
-                                Opacity="0.8"
-                                HorizontalContentAlignment="Center"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Top"
-                                Width="20"
-                                Height="20"
-                                Margin="10"
-                                Padding="0"
-                                Grid.Column="1"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                FocusVisualStyle="{x:Null}"
-                                Style="{x:Null}">
-                                <Icons:PackIconModern Kind="Close" Width="12" Height="12" Foreground="LightGray"/>
-                            </Button>
                         </Grid>
                     </Border>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-    </DockPanel>
+    </Grid>
    
 
 </Controls:MetroWindow>

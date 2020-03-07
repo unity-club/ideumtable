@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Ionic.Zip;
+using MahApps.Metro.Controls;
+using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -12,46 +15,388 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
+using MahApps.Metro.Controls.Dialogs;
+using System.IO;
+using CoffeeTable.Manifests;
+using Newtonsoft.Json;
 
 namespace CoffeeTableLauncher
 {
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
 	/// </summary>
-	public partial class MainWindow
+	public partial class MainWindow : MetroWindow
 	{
+		private static readonly string RootFolder;
+		private static readonly string AppsFolder;
+
+		private const string HEADER_FAILURE = "Failed to add your app";
+		private const string HEADER_APPLICATION_ADD = "Add application";
+		private const string HEADER_APPLICATION_UPDATE = "Update application";
+
+		private string mPendingAppPath = null;
+		private string mPendingAppName = null;
+
+		private List<ApplicationData> mAppBindings;
+
+		static MainWindow()
+		{
+			RootFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CoffeeTable");
+			AppsFolder = Path.Combine(RootFolder, "apps");
+		}
 
 		public MainWindow()
 		{
 			InitializeComponent();
-			ProgressBar.Visibility = Visibility.Hidden;
-			ProgressBar.Value = 100;
 
-			SetupTileGrid();
+			mAppBindings = new List<ApplicationData>();
+
+			ServicePathSelector.OnPathChanged += Manifest_SaveServiceExecutablePath;
+
+			Manifest_Setup();
+			RebuildAppList();
 		}
 
-		List<TileData> tiles = new List<TileData>();
+		#region Coffee Table Manifest
 
-		/* Test method */
-		private void SetupTileGrid()
+		// Set up the Coffee Table file manifest by saving the path to the launcher
+		// and loading the path to the service if it exists
+		private void Manifest_Setup ()
 		{
-			for (int i = 0; i < 25; i++)
-				tiles.Add(new TileData { Color = new SolidColorBrush(Colors.Cyan), Id = "1", Title="TestTitle", Description="Description is here." });
+			CoffeeTableFileManifest manifest = Extensions.GetCoffeeTableManifest();
+			manifest.LauncherPath = Process.GetCurrentProcess().MainModule.FileName;
+			manifest.Set();
 
-			ItemList.ItemsSource = tiles;
+			ServicePathSelector.FileName = manifest.ServiceExecutablePath ?? string.Empty;
 		}
 
-		private void MetroWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+		private void Manifest_SaveServiceExecutablePath (object owner, RoutedEventArgs args)
 		{
+			CoffeeTableFileManifest manifest = Extensions.GetCoffeeTableManifest();
+			manifest.ServiceExecutablePath = ServicePathSelector.FileName;
+			manifest.Set();
 		}
-	}
 
-	public class TileData
-	{
-		public Brush Color { get; set; }
-		public string Id { get; set; }
-		public string Title { get; set; }
-		public string Description { get; set; }
+		#endregion
+
+		#region Apps
+
+		private void RebuildAppList ()
+		{
+			if (!Directory.Exists(AppsFolder)) return;
+			mAppBindings.Clear();
+			List<string> failedBindings = new List<string>();
+			DirectoryInfo appsDirectory = new DirectoryInfo(AppsFolder);
+			appsDirectory.Refresh();
+			foreach (DirectoryInfo di in appsDirectory.GetDirectories("*", SearchOption.AllDirectories))
+			{
+				ApplicationData binding = GetApplicationData(di.FullName);
+				if (binding == null)
+				{
+					failedBindings.Add(di.Name);
+					continue;
+				}
+				mAppBindings.Add(binding);
+			}
+			ItemList.ItemsSource = null;
+			ItemList.ItemsSource = mAppBindings;
+
+			if (failedBindings.Count > 0)
+			{
+				string failedApps = string.Empty;
+				for (int i = 0; i < failedApps.Count(); i++)
+				{
+					failedApps += failedApps[i];
+					if (i < failedApps.Count() - 1) failedApps += ", ";
+				}
+				this.ShowMessageAsync("Failed to load apps", $"Failed to show the following apps: {failedApps}");
+			}
+		}
+
+		private void ItemList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		{
+			if (e.AddedItems.Count < 1)
+				return;
+
+			App_ShowFlyout(e.AddedItems[0] as ApplicationData);
+
+			ApplicationFlyout.IsOpen = true;
+			ItemList.SelectedItem = null;
+		}
+
+		private void App_ShowFlyout (ApplicationData data)
+		{
+			ApplicationFlyout.Tag = data;
+			ApplicationFlyout.Header = data.Name;
+			App_Icon.ImageSource = data.Icon;
+			App_Name.Text = data.Name;
+			App_Author.Text = data.Authors;
+			App_Description.Text = data.Description;
+		}
+
+		private async void App_Uninstall(object sender, RoutedEventArgs e)
+		{
+			ApplicationData data = ApplicationFlyout.Tag as ApplicationData;
+
+			MessageDialogResult result = await this.ShowMessageAsync("Are you sure?",
+				$"Are you sure you want to uninstall {data.Name}? This cannot be undone.",
+				MessageDialogStyle.AffirmativeAndNegative);
+			if (result == MessageDialogResult.Affirmative)
+			{
+				Directory.Delete(Path.Combine(AppsFolder, data.Name.ToLower()), true);
+				RebuildAppList();
+				ApplicationFlyout.IsOpen = false;
+			}
+		}
+
+		#endregion
+
+		#region ApplicationData
+
+		public class ApplicationData
+		{
+			public BitmapImage Icon { get; set; }
+			public string Name { get; set; }
+			public string Authors { get; set; }
+			public string Description { get; set; }
+		}
+
+		private async Task<ApplicationData> ExtractApplicationData (string applicationPath)
+		{
+			// Check that file exists
+			if (!File.Exists(applicationPath))
+			{
+				await this.ShowMessageAsync(HEADER_FAILURE, "The file you selected does not exist");
+				return null;
+			}
+
+			// Get the manifest file inside of the application zip
+			ApplicationFileManifest appManifest;
+			BitmapImage appIcon;
+			ZipFile zip;
+			try { zip = ZipFile.Read(applicationPath); }
+			catch
+			{
+				await this.ShowMessageAsync(HEADER_FAILURE, "The file you added could not be read");
+				return null;
+			}
+			using (zip)
+			{
+				// Get the manifest file
+				ZipEntry manifestEntry = (from entry in zip
+										  where entry.FileName.Equals("manifest.json", StringComparison.OrdinalIgnoreCase)
+										  select entry).FirstOrDefault();
+				if (manifestEntry == null)
+				{
+					await this.ShowMessageAsync(HEADER_FAILURE, "The app you added does not contain a manifest.json. Did you build it correctly?");
+					return null;
+				}
+
+				string appManifestJson;
+				try {
+					using (var stream = new MemoryStream())
+					{
+						manifestEntry.Extract(stream);
+						stream.Position = 0;
+						using (var streamReader = new StreamReader(stream))
+						{
+							appManifestJson = streamReader.ReadToEnd();
+						}
+					}
+				}
+				catch
+				{
+					await this.ShowMessageAsync(HEADER_FAILURE, "Could not read your application's manifest.");
+					return null;
+				}
+
+				try { appManifest = JsonConvert.DeserializeObject<ApplicationFileManifest>(appManifestJson); }
+				catch (JsonException)
+				{
+					AddApp_BadFormattingError();
+					return null;
+				}
+
+				// Validate the given manifest. If anything here isn't caught by the launcher, it will be caught
+				// by the service once it is ran.
+				bool badFormattingSentinel = false;
+				if (string.IsNullOrWhiteSpace(appManifest.Name)) badFormattingSentinel = true;
+				if (string.IsNullOrWhiteSpace(appManifest.ExecutablePath)) badFormattingSentinel = true;
+				if (string.IsNullOrWhiteSpace(appManifest.IconPath)) badFormattingSentinel = true;
+
+				if (badFormattingSentinel)
+				{
+					AddApp_BadFormattingError();
+					return null;
+				}
+
+				// Get the app icon image
+				ZipEntry iconEntry = (from entry in zip.Entries
+									  where entry.FileName.Equals(appManifest.IconPath)
+									  select entry).FirstOrDefault();
+				if (iconEntry == null)
+				{
+					await this.ShowMessageAsync(HEADER_FAILURE, "The selected app did not have an icon.");
+					return null;
+				}
+
+				// get the icon type 
+				using (var iconStream = new MemoryStream()) {
+					iconEntry.Extract(iconStream);
+					appIcon = GetAppImageFromStream(iconStream);
+				}
+			}
+
+			ApplicationData dataBinding = GetAppBinding(appManifest);
+			dataBinding.Icon = appIcon;
+
+			return dataBinding;
+		}
+
+		private ApplicationData GetApplicationData (string appDirectoryPath)
+		{
+			if (!Directory.Exists(appDirectoryPath))
+				return null;
+			DirectoryInfo appDirectory = new DirectoryInfo(appDirectoryPath);
+			string manifestFile = (from file in appDirectory.EnumerateFiles()
+									 where file.Name.Equals("manifest.json", StringComparison.OrdinalIgnoreCase)
+									 select file).FirstOrDefault()?.FullName;
+			ApplicationFileManifest appManifest;
+			try { appManifest = JsonConvert.DeserializeObject<ApplicationFileManifest>(File.ReadAllText(manifestFile)); }
+			catch { return null; }
+
+			// Get app icon
+			byte[] iconBytes;
+			try { iconBytes = File.ReadAllBytes(Path.Combine(appDirectoryPath, appManifest.IconPath)); }
+			catch { return null; }
+			BitmapImage appIcon = new BitmapImage();
+			using (MemoryStream iconStream = new MemoryStream(iconBytes))
+			{
+				appIcon = GetAppImageFromStream(iconStream);
+			}
+
+			ApplicationData binding = GetAppBinding(appManifest);
+			binding.Icon = appIcon;
+
+			return binding;
+		}
+
+		private ApplicationData GetAppBinding (ApplicationFileManifest appManifest)
+		{
+			return new ApplicationData
+			{
+				Name = appManifest.Name,
+				Authors = appManifest.Author,
+				Description = appManifest.Description
+			};
+		}
+
+		private BitmapImage GetAppImageFromStream (MemoryStream stream)
+		{
+			BitmapImage appIcon = new BitmapImage();
+			appIcon.BeginInit();
+			appIcon.CacheOption = BitmapCacheOption.OnLoad;
+			appIcon.StreamSource = stream;
+			appIcon.EndInit();
+			return appIcon;
+		}
+
+		private bool ApplicationExists(string appName)
+		{
+			return mAppBindings.Any(x => x.Name.Equals(mPendingAppName, StringComparison.OrdinalIgnoreCase));
+		}
+
+		#endregion
+
+		#region AddApp
+
+		private async void AddApplication_Click(object sender, RoutedEventArgs e)
+		{
+			// Ask the user to select a file
+			OpenFileDialog dlg = new OpenFileDialog();
+			dlg.Title = "Add an application...";
+			dlg.Filter = "Table App|*.tableapp;*.zip";
+			dlg.CheckFileExists = true;
+			dlg.CheckPathExists = true;
+			dlg.Multiselect = false;
+			dlg.DefaultExt = "tableapp";
+
+			bool successful = dlg.ShowDialog() ?? false;
+			if (!successful) return;
+
+			string filePath = dlg.FileName;
+
+			ApplicationData binding = await ExtractApplicationData(filePath);
+			if (binding == null) return;
+
+			// Everything is okay, so we will temporarily cache the manifest and app file location
+			// and open the "Add Application Flyout" for the user to confirm
+			mPendingAppPath = filePath;
+			mPendingAppName = binding.Name;
+			AddApp_ShowFlyout(binding);
+		}
+
+		private void AddApp_ShowFlyout (ApplicationData binding)
+		{
+			if (ApplicationExists(binding.Name))
+				AddApplicationFlyout.Header = HEADER_APPLICATION_UPDATE;
+			else AddApplicationFlyout.Header = HEADER_APPLICATION_ADD;
+
+			AddApp_AppIcon.ImageSource = binding.Icon;
+			AddApp_AppName.Text = binding.Name;
+			AddApp_AppAuthor.Text = binding.Authors;
+			AddApp_AppDescription.Text = binding.Description;
+
+			AddApplicationFlyout.IsOpen = true;
+		}
+
+		private async void AddApp_BadFormattingError()
+		{
+			await this.ShowMessageAsync(HEADER_FAILURE, "This app's manifest.json is improperly formatted or is missing required fields.");
+		}
+
+		private void AddApp_Confirm(object sender, RoutedEventArgs e)
+		{
+			// Ensure the apps folder exists
+			if (!Directory.Exists(AppsFolder))
+				Directory.CreateDirectory(AppsFolder);
+
+			// Does the pending app already exist?
+			// If so, we need to delete it's folder (we are updating it)
+			if (ApplicationExists(mPendingAppName))
+				Directory.Delete(Path.Combine(AppsFolder, mPendingAppName), true);
+
+			// Extract file to the proper directory in the apps folder
+			string newAppPath = Path.Combine(AppsFolder, mPendingAppName.ToLower());
+			Directory.CreateDirectory(newAppPath);
+			using (ZipFile zip = ZipFile.Read(mPendingAppPath))
+			{
+				zip.ExtractProgress += (o, args) =>
+				{
+					if (args.TotalBytesToTransfer > 0)
+					{
+						ProgressBar.Value = 100 * args.BytesTransferred / args.TotalBytesToTransfer;
+					}
+				};
+				zip.ExtractAll(newAppPath);
+			}
+
+			ProgressBar.Value = 0;
+
+			mPendingAppPath = null;
+			mPendingAppName = null;
+			AddApplicationFlyout.IsOpen = false;
+
+			RebuildAppList();
+		}
+
+		private void AddApp_Cancel(object sender, RoutedEventArgs e)
+		{
+			mPendingAppPath = null;
+			mPendingAppName = null;
+			AddApplicationFlyout.IsOpen = false;
+		}
+
+		#endregion
 	}
 }
