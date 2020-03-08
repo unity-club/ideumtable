@@ -45,11 +45,29 @@ namespace CoffeeTable.Messaging.Core
 			}
 		}
 
+		/// <summary>
+		/// Gets a string indicating the name of the request that should be executed by the receiving client application.
+		/// </summary>
 		public string Request { get; private set; }
+		/// <summary>
+		/// Gets a string containing optional JSON-encoding data that is coupled with request and response messages.
+		/// </summary>
 		public string Data { get; private set; }
+		/// <summary>
+		/// Gets a value that unique identifies the receiving client application.
+		/// </summary>
 		public uint DestinationId { get; private set; }
+		/// <summary>
+		/// Gets a value that uniquely identifies this message.
+		/// </summary>
 		public uint Id { get; private set; }
+		/// <summary>
+		/// Gets a value that uniquely identifies another <see cref="Message"/> object that this message is a response to.
+		/// </summary>
 		public uint CorrelationId { get; private set; }
+		/// <summary>
+		/// Gets an object containing metadata about this <see cref="Message"/> object.
+		/// </summary>
 		public MessageInfo Info { get; private set; }
 
 		public Message (string request, uint destinationId, string data = null, uint correlationId = 0)
