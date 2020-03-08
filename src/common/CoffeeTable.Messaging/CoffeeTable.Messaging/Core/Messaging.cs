@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 
 namespace CoffeeTable.Messaging.Core
 {
@@ -8,64 +9,60 @@ namespace CoffeeTable.Messaging.Core
 	[JsonObject(MemberSerialization.Fields)]
 	public sealed class Message
 	{
+		private static uint _messageId = 1;
+
 		/// <summary>
-		/// A meta-data class containing information about the application that originated a <see cref="Message"/> object.
+		/// A meta-data class containing miscellaneous information about a <see cref="Message"/> object.
 		/// </summary>
 		[JsonObject(MemberSerialization.Fields)]
-		public sealed class SenderInfo
+		public sealed class MessageInfo
 		{
 			/// <summary>
-			/// The name of the application that this message, as defined in its application manifest file.
+			/// The name of the application that this message, as in its application manifest file.
 			/// </summary>
-			public string Name { get; private set; }
+			public string SenderName { get; set; }
 			/// <summary>
 			/// The unique ID used to identify the application that sent this message.
 			/// </summary>
-			public uint Id { get; private set; }
-
+			public uint SenderId { get; set; }
 			/// <summary>
-			/// Constructs a <see cref="SenderInfo"/> object with the appropriate information.
+			/// The time when the sender application sent the message
 			/// </summary>
-			/// <param name="senderName">The name of the application sending the message</param>
-			/// <param name="senderId">The unique ID of the application sending the message</param>
-			public SenderInfo (string senderName, uint senderId)
+			public DateTime SentTime { get; }
+			/// <summary>
+			/// The time when the consumer application received the message
+			/// </summary>
+			public DateTime ReceivedTime { get; set; }
+			/// <summary>
+			/// The number of milliseconds that passed between when the message was sent and when it was received.
+			/// </summary>
+			[JsonIgnore]
+			public int Delay => (ReceivedTime - SentTime).Milliseconds;
+
+			public MessageInfo ()
 			{
-				Name = senderName;
-				Id = senderId;
+				SentTime = DateTime.Now;
 			}
 		}
 
-		/// <summary>
-		/// The unique ID of the application where this <see cref="Message"/> object should be sent.
-		/// </summary>
+		public string Request { get; private set; }
+		public string Data { get; private set; }
 		public uint DestinationId { get; private set; }
-		/// <summary>
-		/// The name of the command or operation that should be executed by the application that receives this message.
-		/// </summary>
-		/// <remarks>
-		/// The name of the desired command or operation depends on the context in which the message is being sent, and must be agreed upon beforehand by the applications who will communicate with eachother.
-		/// </remarks>
-		public string CommandName { get; private set; }
-		/// <summary>
-		/// The data that is to be sent with the command or operation specified by <see cref="CommandName"/>. Can be null or empty for a command that does not require any data.
-		/// </summary>
-		public string CommandData { get; private set; }
-		/// <summary>
-		/// Meta-data about the application that originated this <see cref="Message"/> instance.
-		/// </summary>
-		public SenderInfo Sender { get; private set; }
+		public uint Id { get; private set; }
+		public uint CorrelationId { get; private set; }
+		public MessageInfo Info { get; private set; }
 
-		/// <summary>
-		/// Constructs a <see cref="Message"/> object with the appropriate information.
-		/// </summary>
-		/// <param name="destinationId">The unique ID of the application to whom this message should be sent.</param>
-		/// <param name="commandName">The name of the command or operation that should be executed by the application whose ID is <see cref="DestinationId"/></param>
-		/// <param name="commandData">Optional data that is to be sent with the command or operation specified by <see cref="CommandName"/></param>
-		public Message (uint destinationId, string commandName, string commandData = null)
+		public Message (string request, uint destinationId, string data = null, uint correlationId = 0)
 		{
+			Request = request;
+			Data = data;
 			DestinationId = destinationId;
-			CommandName = commandName;
-			CommandData = commandData;
+			Id = _messageId++;
+			CorrelationId = correlationId;
+			Info = new MessageInfo();
 		}
+
+		public Message (string request, uint destinationId, object data = null, uint correlationId = 0) 
+			: this(request, destinationId, JsonConvert.SerializeObject(data), correlationId) {}
 	}
 }

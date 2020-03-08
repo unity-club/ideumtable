@@ -9,27 +9,41 @@ namespace CoffeeTable.Messaging.Tests
 {
 	class Program
 	{
+		static MessagingHandler handlerA, handlerB;
 		static void Main(string[] args)
 		{
-			MessageCallbackHandler handler = new MessageCallbackHandler();
-			handler.AddCallbacks(new Program());
+			Program prog = new Program();
 
-			Message message = handler.GetMessage(0, "tesT", new int[] { 1, 2, 3, 4 });
-			handler.ReceiveMessage(message);
+			handlerA = new MessagingHandler(m => handlerB.Receive(m));
+			handlerB = new MessagingHandler(m => handlerA.Receive(m));
+
+			handlerA.Register(new A());
+
+			handlerB.Send<int[]>("request", 0, new int[] { 1, 2, 3, 4 }, a =>
+			{
+				Console.WriteLine("I received the data!");
+				foreach (int i in a)
+					Console.WriteLine(i);
+			});
 
 			Console.ReadKey(true);
 		}
 
-		[CommandHandler("tESt")]
-		void Bar (Message.SenderInfo sender)
+		class A
 		{
-			Console.WriteLine("received without data");
+			[RequestHandler("request")]
+			static int[] foo (Message.MessageInfo info, int[] data)
+			{
+				Console.WriteLine("A receives the request statically");
+				for (int i = 0; i < data.Length; i++)
+					data[i] += 10;
+				return data;
+			}
 		}
 
-		[CommandHandler("TESt")]
-		static void Foo(Message.SenderInfo sender)
+		class B
 		{
-			Console.WriteLine("received statically without data");
+
 		}
 	}
 }
