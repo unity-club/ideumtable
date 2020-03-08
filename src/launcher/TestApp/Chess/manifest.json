@@ -1,6 +1,6 @@
 {
-  "Name": "Chess2",
-  "Author": "Jacob Roberts-Baca",
-  "Description": "A simple chess game",
+  "Name": "OtherChessApp",
+  "Author": "Awesome Guy",
+  "Description": "An extremely complicated chess game",
   "ExecutablePath": "executable.exe"
 }
