@@ -27,6 +27,8 @@ namespace CoffeeTable.Messaging.Handling
 		private Dictionary<string, List<RequestHandlerInfo>> mRequestHandlersMap;
 		private HashSet<MethodInfo> mRegisteredMethods;
 
+		public int Timeout { get; set; } = 1000;
+
 		public MessagingHandler(Action<Message> connectionBinder)
 		{
 			mConnectionBinder = connectionBinder;
@@ -38,14 +40,15 @@ namespace CoffeeTable.Messaging.Handling
 
 		public Exchange<T> Send<T>(uint destinationId, string requestName, object data = null)
 		{
-			Exchange<T> exchange = new Exchange<T>();
+			Exchange<T> exchange = new Exchange<T>(Timeout);
 			Message pendingMessage = new Message();
 
-			pendingMessage.Request = requestName;
+			pendingMessage.Request = requestName?.ToLower();
 			pendingMessage.DestinationId = destinationId;
 			if (data != null) pendingMessage.Data = JsonConvert.SerializeObject(data);
 
 			exchange.Requested = pendingMessage.Sent;
+			exchange.CorrelationId = pendingMessage.Id;
 
 			mPendingExchangesMap[pendingMessage.Id] = exchange;
 
@@ -54,9 +57,138 @@ namespace CoffeeTable.Messaging.Handling
 			return exchange;
 		}
 
+		public Exchange<Null> Send(uint destinationId, string requestName, object data = null)
+			=> Send<Null>(destinationId, requestName, data);
+
 		public void Receive(Message message)
 		{
-			throw new NotImplementedException();
+			// Each time a message is received, we will scan the list of pending exchanges
+			// to see whether or not any of them have timed out, and remove them.
+			DateTime now = DateTime.Now;
+			foreach (uint correlationId in mPendingExchangesMap.Keys.ToList())
+			{
+				Exchange exchange = mPendingExchangesMap[correlationId];
+				if ((now - exchange.Requested).Milliseconds > exchange.Timeout)
+					mPendingExchangesMap.Remove(correlationId);
+			}
+
+			message.Received = now;
+
+			/* Note: The following code is a bit heavy on the use of reflection.
+			 * This is to work around my inability to statically type the references
+			 * to the generic exchanges. I am open to suggestions on how to do this in a
+			 * way more conducive to static typing */
+
+			// There are two situations that can occur when a message is received.
+			// (1) The message is a request to do something
+			// (2) The message is a response to a request that we made (i.e. completing a pending exchange)
+			if (message.CorrelationId > 0)
+			{
+				// This message is (supposedly) a response to a request we made
+				if (mPendingExchangesMap.TryGetValue(message.CorrelationId, out Exchange exchange))
+				{
+					// Get property infos via reflection
+					Type exchangeType = exchange.GetType();
+					Type exchangeDataType = exchangeType.GetGenericArguments()[0];
+
+					exchange.Complete = true;
+					exchange.Success = message.Success;
+					exchange.Details = message.Details;
+					exchange.Completed = now;
+
+					// Deserializing JSON
+					// If we failed to deserialize JSON, we fail to receive the response to this exchange
+					object data = null;
+					if (!exchangeDataType.Equals(Null.NullType))
+					{
+						try { data = JsonConvert.DeserializeObject(message.Data, exchangeDataType); }
+						catch (JsonException)
+						{
+							exchange.Success = false;
+							exchange.Details = $"Failed to deserialize incoming response data. " +
+								$"Expected to receive a {exchangeDataType.Name}, but received an object that could not be deserialized into this type. " +
+								$"Are you asking for the correct type?";
+						}
+					}
+
+					// Succeeded in deserializing, now set data and call receiving delegate
+					if (data != null)
+						exchange.Property_Data.SetValue(exchange, data);
+
+					// Call OnComplete delegate no matter what
+					Delegate onCompleteDelegate = exchange.Field_OnCompleted.GetValue(exchange) as Delegate;
+					onCompleteDelegate?.DynamicInvoke(exchange);
+
+					// Conditionally call success and failure delegates
+					if (exchange.Success)
+					{
+						Delegate onSuccessDelegate = exchange.Field_OnSucceeded.GetValue(exchange) as Delegate;
+						onSuccessDelegate?.DynamicInvoke(exchange);
+					} else
+					{
+						Delegate onFailedDelegate = exchange.Field_OnFailed.GetValue(exchange) as Delegate;
+						onFailedDelegate?.DynamicInvoke(exchange);
+					}
+
+					// Remove this response from the pending exchanges map
+					mPendingExchangesMap.Remove(message.CorrelationId);
+				}
+			}
+			else
+			{
+				// This message is (supposedly) a request
+				if (mRequestHandlersMap.TryGetValue(message.Request.ToLower(), out List<RequestHandlerInfo> list))
+				{
+					for (int i = 0; i < list.Count(); i++)
+					{
+						RequestHandlerInfo requestHandlerInfo = list[i];
+
+						// Does this request really need deserialized data? If so, let's get it.
+						// Once again, if we fail to deserialize, we fail to receive
+						object requestData = null;
+						if (!requestHandlerInfo.RequestType.Equals(Null.NullType))
+						{
+							try { requestData = JsonConvert.DeserializeObject(message.Data, requestHandlerInfo.RequestType); }
+							catch (JsonException) { continue; }
+						}
+
+						// Create the request object to be given to the handler invoker
+						Type requestType = Request.GenericType.MakeGenericType(requestHandlerInfo.RequestType);
+						Request request = Activator.CreateInstance(requestType) as Request;
+						request.SenderName = message.SenderName;
+						request.SenderId = message.SenderId;
+						request.Sent = message.Sent;
+						request.Received = message.Received ?? now;
+
+						// Give data to the request object if we need to
+						if (requestData != null)
+							request.Property_Data.SetValue(request, requestData);
+
+						// Create the response object to be given to the handler invoker
+						Type responseType = Response.GenericType.MakeGenericType(requestHandlerInfo.ResponseType);
+						Response response = Activator.CreateInstance(responseType) as Response;
+
+						// Invoke the delegate
+						requestHandlerInfo.Invoker.DynamicInvoke(request, response);
+
+						// Get the data after calling delegate
+						object responseData = null;
+						if (!requestHandlerInfo.ResponseType.Equals(Null.NullType))
+							responseData = response.Property_Data.GetValue(response);
+
+						Message responseMessage = new Message()
+						{
+							CorrelationId = message.Id,
+							DestinationId = message.SenderId,
+							Success = response.Success,
+							Details = response.Details,
+							Data = JsonConvert.SerializeObject(responseData)
+						};
+						
+						mConnectionBinder?.Invoke(responseMessage);
+					}
+				}
+			}
 		}
 
 		public void Register(object o)
@@ -99,7 +231,7 @@ namespace CoffeeTable.Messaging.Handling
 			ParameterInfo[] parameters = method.GetParameters();
 			if (parameters.Length != 2)
 				ThrowInvalidMethodSignatureException(method, $"has an invalid method signature. Request handler methods must have only two parameters, {nameof(Request)} and {nameof(Response)}.");
-			if (!IsGenericType(parameters[0].ParameterType, typeof(Request<>)) || !IsGenericType(parameters[1].ParameterType, typeof(Response<>)))
+			if (!IsGenericType(parameters[0].ParameterType, Request.GenericType) || !IsGenericType(parameters[1].ParameterType, Response.GenericType))
 				ThrowInvalidMethodSignatureException(method, $"has an invalid method signature. " +
 					$"The first parameter must be a {nameof(Request)}, whose generic type represents the type of data this request will receive. " +
 					$"The second parameter must be a {nameof(Response)}, whose generic type represents the type of data this request will respond with. " +

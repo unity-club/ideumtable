@@ -30,7 +30,7 @@ namespace CoffeeTable.Messaging.Core
 		public DateTime Sent { get; private set; }
 		public DateTime? Received { get; set; }
 		public string SenderName { get; set; }
-		public string SenderId { get; set; }
+		public uint SenderId { get; set; }
 		#endregion
 
 		public Message()

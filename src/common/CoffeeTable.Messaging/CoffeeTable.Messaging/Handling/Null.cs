@@ -6,6 +6,8 @@ namespace CoffeeTable.Messaging.Handling
 {
 	public sealed class Null
 	{
+		internal static readonly Type NullType = typeof(Null);
+
 		private Null() { }
 
 		public override bool Equals(object obj)
