@@ -21,15 +21,16 @@ namespace CoffeeTable.Messaging.Tests
 			handlerA = new MessagingHandler(m => handlerB.Receive(m));
 			handlerB = new MessagingHandler(async m =>
 			{
-				await Task.Delay(500);
+				await Task.Delay(TimeSpan.FromMilliseconds(5));
 				handlerA.Receive(m);
 			});
 
 			handlerA.Register<A>();
 
-			handlerB.Send<int[]>(0, "test", new List<int> { 1, 2, 3, 4 })
+			handlerB.Send<Data<int>>(0, "test", new List<int> { 1, 2, 3, 4 })
 				.OnSucceeded += a =>
 				{
+					Console.WriteLine(a.Data.GenericField);
 					Console.WriteLine("I received the data!");
 				};
 
@@ -39,15 +40,24 @@ namespace CoffeeTable.Messaging.Tests
 		class A
 		{
 			[RequestHandler("test")]
-			static void handler(Request<List<int>> request, Response<int[]> response)
+			static void handler(Request<List<int>> request, Response<Data<int>> response)
 			{
-				response.Data = request.Data.ToArray();
+				response.Data = new Data<int>();
+				response.Data.GenericField = 10;
 				;
 			}
 		}
 
 		class B
 		{
+		}
+
+		class Data<T>
+		{
+			public T GenericField;
+			public int Field;
+			public string Property { get; set; } = "hello";
+			public char[] FieldArray = new char[] { '1', 'a', 'd'};
 		}
 	}
 }
