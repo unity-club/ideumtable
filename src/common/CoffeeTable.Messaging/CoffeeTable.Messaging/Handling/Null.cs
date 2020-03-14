@@ -12,7 +12,7 @@ namespace CoffeeTable.Messaging.Handling
 
 		public override bool Equals(object obj)
 		{
-			return obj == null || obj.GetType().Equals(typeof(Null));
+			return obj == null || obj.GetType().Equals(NullType);
 		}
 
 		public override int GetHashCode()

@@ -23,19 +23,15 @@ namespace CoffeeTable.Messaging.Handling
 		private static readonly Regex RequestNameRegex = new Regex(@"^[_\-a-zA-Z0-9]+$");
 
 		private Action<Message> mConnectionBinder;
-		private Dictionary<uint, Exchange> mPendingExchangesMap;
-		private Dictionary<string, List<RequestHandlerInfo>> mRequestHandlersMap;
-		private HashSet<MethodInfo> mRegisteredMethods;
+		private Dictionary<uint, Exchange> mPendingExchangesMap = new Dictionary<uint, Exchange>();
+		private Dictionary<string, List<RequestHandlerInfo>> mRequestHandlersMap = new Dictionary<string, List<RequestHandlerInfo>>();
+		private HashSet<MethodInfo> mRegisteredMethods = new HashSet<MethodInfo>();
 
 		public int Timeout { get; set; } = 1000;
 
 		public MessagingHandler(Action<Message> connectionBinder)
 		{
 			mConnectionBinder = connectionBinder;
-
-			mPendingExchangesMap = new Dictionary<uint, Exchange>();
-			mRegisteredMethods = new HashSet<MethodInfo>();
-			mRequestHandlersMap = new Dictionary<string, List<RequestHandlerInfo>>();
 		}
 
 		public Exchange<T> Send<T>(uint destinationId, string requestName, object data = null)
@@ -231,6 +227,8 @@ namespace CoffeeTable.Messaging.Handling
 			ParameterInfo[] parameters = method.GetParameters();
 			if (parameters.Length != 2)
 				ThrowInvalidMethodSignatureException(method, $"has an invalid method signature. Request handler methods must have only two parameters, {nameof(Request)} and {nameof(Response)}.");
+			if (IsRefInOut(parameters[0]) || IsRefInOut(parameters[0]))
+				ThrowInvalidMethodSignatureException(method, "has an invalid method signature. The parameters in a request handler method cannot be marked as in, out, or pass by reference.");
 			if (!IsGenericType(parameters[0].ParameterType, Request.GenericType) || !IsGenericType(parameters[1].ParameterType, Response.GenericType))
 				ThrowInvalidMethodSignatureException(method, $"has an invalid method signature. " +
 					$"The first parameter must be a {nameof(Request)}, whose generic type represents the type of data this request will receive. " +
@@ -238,11 +236,13 @@ namespace CoffeeTable.Messaging.Handling
 					$"Either type parameter can be the {nameof(Null)} type if the request handler should not receive or respond, respectively, with any data.");
 			if (!method.ReturnType.Equals(typeof(void)))
 				ThrowInvalidMethodSignatureException(method, "has an invalid method signature. Request handlers should not return anything and should have a void return type.");
-			if (IsRefInOut(parameters[0]) || IsRefInOut(parameters[0]))
-				ThrowInvalidMethodSignatureException(method, "has an invalid method signature. The parameters in a request handler method cannot be marked as in, out, or pass by reference.");
 
 			Type requestType = parameters[0].ParameterType.GetGenericArguments()[0];
 			Type responseType = parameters[1].ParameterType.GetGenericArguments()[0];
+
+			// Check that response data type is concrete
+			if (!IsConcrete(responseType))
+				ThrowInvalidMethodSignatureException(method, $"has an invalid method signature. The response type parameter, {responseType}, is not a concrete class. Response type parameters must be concrete so that the deserializer knows what type to deserialize into.");
 
 			// Create delegate type
 			Type delegateType = typeof(RequestHandler<,>).MakeGenericType(requestType, responseType);
@@ -285,9 +285,14 @@ namespace CoffeeTable.Messaging.Handling
 			return info.IsOut || info.IsIn || info.ParameterType.IsByRef;
 		}
 
+		private bool IsConcrete (Type type)
+		{
+			return !type.IsInterface && !type.IsAbstract;
+		}
+
 		private void ThrowInvalidMethodSignatureException(MethodInfo method, string message)
 		{
-			throw new ArgumentException($"{AssemblyName}: Method {GetFormattedMethodName(method)} marked with {nameof(RequestHandlerAttribute)} {message}. Refer to the documentation.");
+			throw new ArgumentException($"{AssemblyName}: Method {GetFormattedMethodName(method)} marked with {nameof(RequestHandlerAttribute)} {message} Refer to the documentation.");
 		}
 
 		private string GetFormattedMethodName(MethodInfo method)

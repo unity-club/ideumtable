@@ -25,9 +25,9 @@ namespace CoffeeTable.Messaging.Tests
 				handlerA.Receive(m);
 			});
 
-			handlerA.Register<A>();
+			handlerA.Register(new A());
 
-			handlerB.Send<Data<int>>(0, "test", new List<int> { 1, 2, 3, 4 })
+			handlerB.Send<Data<int>>(0, "tESt", new List<int> { 1, 2, 3, 4 })
 				.OnSucceeded += a =>
 				{
 					Console.WriteLine(a.Data.GenericField);
@@ -39,8 +39,8 @@ namespace CoffeeTable.Messaging.Tests
 
 		class A
 		{
-			[RequestHandler("test")]
-			static void handler(Request<List<int>> request, Response<Data<int>> response)
+			[RequestHandler("TesT")]
+			void handler(Request<List<int>> request, Response<Data<int>> response)
 			{
 				response.Data = new Data<int>();
 				response.Data.GenericField = 10;

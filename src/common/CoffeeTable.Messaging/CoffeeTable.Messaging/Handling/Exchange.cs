@@ -20,6 +20,15 @@ namespace CoffeeTable.Messaging.Handling
 		public DateTime Requested { get; set; }
 		public DateTime? Completed { get; set; }
 		internal uint CorrelationId { get; set; }
+
+		public int Delay
+		{
+			get
+			{
+				if (Completed != null) return ((Completed ?? DateTime.Now) - Requested).Milliseconds;
+				else return 0;
+			}
+		}
 	}
 
 	public class Exchange<T> : Exchange
