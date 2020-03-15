@@ -54,10 +54,9 @@ namespace CoffeeTable.Messaging.Handling
 		{
 			return Task.Run(() =>
 			{
-				DateTime startTime = DateTime.Now;
 				while (!Complete)
 				{
-					if ((DateTime.Now - startTime).TotalMilliseconds > Timeout)
+					if ((DateTime.Now - Requested).TotalMilliseconds > Timeout)
 					{
 						SetTimedOut();
 						break;
