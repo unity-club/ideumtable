@@ -64,8 +64,11 @@ namespace CoffeeTable.Messaging.Handling
 			foreach (uint correlationId in mPendingExchangesMap.Keys.ToList())
 			{
 				Exchange exchange = mPendingExchangesMap[correlationId];
-				if ((now - exchange.Requested).Milliseconds > exchange.Timeout)
+				if ((now - exchange.Requested).TotalMilliseconds > exchange.Timeout)
+				{
 					mPendingExchangesMap.Remove(correlationId);
+					exchange.SetTimedOut();
+				}
 			}
 
 			message.Received = now;
@@ -83,6 +86,13 @@ namespace CoffeeTable.Messaging.Handling
 				// This message is (supposedly) a response to a request we made
 				if (mPendingExchangesMap.TryGetValue(message.CorrelationId, out Exchange exchange))
 				{
+					// Just in case, if this exchange is already completed, remove it and early exit
+					if (exchange.Complete)
+					{
+						mPendingExchangesMap.Remove(message.CorrelationId);
+						return;
+					}
+
 					// Get property infos via reflection
 					Type exchangeType = exchange.GetType();
 					Type exchangeDataType = exchangeType.GetGenericArguments()[0];
@@ -107,24 +117,9 @@ namespace CoffeeTable.Messaging.Handling
 						}
 					}
 
-					// Succeeded in deserializing, now set data and call receiving delegate
+					// Succeeded in deserializing, now set data
 					if (data != null)
 						exchange.Property_Data.SetValue(exchange, data);
-
-					// Call OnComplete delegate no matter what
-					Delegate onCompleteDelegate = exchange.Field_OnCompleted.GetValue(exchange) as Delegate;
-					onCompleteDelegate?.DynamicInvoke(exchange);
-
-					// Conditionally call success and failure delegates
-					if (exchange.Success)
-					{
-						Delegate onSuccessDelegate = exchange.Field_OnSucceeded.GetValue(exchange) as Delegate;
-						onSuccessDelegate?.DynamicInvoke(exchange);
-					} else
-					{
-						Delegate onFailedDelegate = exchange.Field_OnFailed.GetValue(exchange) as Delegate;
-						onFailedDelegate?.DynamicInvoke(exchange);
-					}
 
 					// Remove this response from the pending exchanges map
 					mPendingExchangesMap.Remove(message.CorrelationId);

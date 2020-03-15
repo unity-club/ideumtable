@@ -19,22 +19,23 @@ namespace CoffeeTable.Messaging.Tests
 		static void Main(string[] args)
 		{
 			handlerA = new MessagingHandler(m => handlerB.Receive(m));
-			handlerB = new MessagingHandler(async m =>
+			handlerB = new MessagingHandler(m =>
 			{
-				await Task.Delay(TimeSpan.FromMilliseconds(5));
 				handlerA.Receive(m);
 			});
 
 			handlerA.Register(new A());
+			handlerB.Timeout = 2000;
 
-			handlerB.Send<Data<int>>(0, "tESt", new List<int> { 1, 2, 3, 4 })
-				.OnSucceeded += a =>
-				{
-					Console.WriteLine(a.Data.GenericField);
-					Console.WriteLine("I received the data!");
-				};
+			SendMessage();
 
 			Console.Read();
+		}
+
+		static async void SendMessage ()
+		{
+			var data = await handlerB.Send<Data<int>>(0, "tESt1", new List<int> { 1, 2, 3, 4 });
+			Console.WriteLine(data.TimedOut);
 		}
 
 		class A
