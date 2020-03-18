@@ -27,15 +27,19 @@ namespace CoffeeTable.Messaging.Tests
 			handlerA.Register(new A());
 			handlerB.Timeout = 2000;
 
-			SendMessage();
+			for (int i = 0; i < 1000; i++)
+				SendMessage();
 
 			Console.Read();
 		}
 
 		static async void SendMessage ()
 		{
-			var data = await handlerB.Send<Data<int>>(0, "tESt1", new List<int> { 1, 2, 3, 4 });
-			Console.WriteLine(data.TimedOut);
+			Stopwatch st = new Stopwatch();
+			st.Start();
+			var data = await handlerB.Send<Data<int>>(0, "tESt", new List<int> { 1, 2, 3, 4 });
+			st.Stop();
+			Console.WriteLine($"Send Message Operation took {st.ElapsedMilliseconds} ms and was " + (data.Success ? "successful." : "not successful."));
 		}
 
 		class A

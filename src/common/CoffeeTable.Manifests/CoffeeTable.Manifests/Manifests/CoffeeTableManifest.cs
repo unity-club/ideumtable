@@ -12,7 +12,7 @@ namespace CoffeeTable.Manifests
 	/// <remarks>
 	/// This class should represent the JSON manifest file stored at the root level of the Appdata/Roaming/CoffeeTable folder.
 	/// </remarks>
-	public class CoffeeTableFileManifest
+	public class CoffeeTableManifest
 	{
 		public int ServiceHttpPort { get; set; }
 		public int ServiceTcpPort { get; set; }

@@ -10,10 +10,10 @@ namespace CoffeeTable.Messaging.Handling
 		internal static readonly Type GenericType = typeof(Request<>);
 		internal PropertyInfo Property_Data => GetType().GetProperty(nameof(Request<Null>.Data));
 
-		public string SenderName { get; set; }
-		public uint SenderId { get; set; }
-		public DateTime Sent { get; set; }
-		public DateTime Received { get; set; }
+		public string SenderName { get; internal set; }
+		public uint SenderId { get; internal set; }
+		public DateTime Sent { get; internal set; }
+		public DateTime Received { get; internal set; }
 	}
 
 	public class Request<T> : Request

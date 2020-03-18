@@ -14,18 +14,18 @@ namespace CoffeeTableLauncher
 		private static readonly string ManifestPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CoffeeTable", "coffeetable.json");
 		private static readonly string ManifestPathRoot = Path.GetPathRoot(ManifestPath);
 
-		public static CoffeeTableFileManifest GetCoffeeTableManifest()
+		public static CoffeeTableManifest GetCoffeeTableManifest()
 		{
-			if (!File.Exists(ManifestPath)) return new CoffeeTableFileManifest();
+			if (!File.Exists(ManifestPath)) return new CoffeeTableManifest();
 			else
 			{
 				string json = File.ReadAllText(ManifestPath);
-				try { return JsonConvert.DeserializeObject<CoffeeTableFileManifest>(json); }
-				catch (JsonException) { return new CoffeeTableFileManifest(); }
+				try { return JsonConvert.DeserializeObject<CoffeeTableManifest>(json); }
+				catch (JsonException) { return new CoffeeTableManifest(); }
 			}
 		}
 
-		public static void Set(this CoffeeTableFileManifest manifest)
+		public static void Set(this CoffeeTableManifest manifest)
 		{
 			if (!Directory.Exists(ManifestPathRoot)) Directory.CreateDirectory(ManifestPathRoot);
 			string json = JsonConvert.SerializeObject(manifest, Formatting.Indented);

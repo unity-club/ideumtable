@@ -13,13 +13,13 @@ namespace CoffeeTable.Messaging.Handling
 		internal static readonly Type GenericType = typeof(Exchange<>);
 		internal PropertyInfo Property_Data => GetType().GetProperty(nameof(Exchange<Null>.Data));
 
-		public bool Complete { get; set; }
-		public bool Success { get; set; }
-		public bool TimedOut { get; set; }
-		public string Details { get; set; }
+		public bool Complete { get; internal set; }
+		public bool Success { get; internal set; }
+		public bool TimedOut { get; internal set; }
+		public string Details { get; internal set; }
 		public int Timeout { get; protected set; }
-		public DateTime Requested { get; set; }
-		public DateTime? Completed { get; set; }
+		public DateTime Requested { get; internal set; }
+		public DateTime? Completed { get; internal set; }
 		internal uint CorrelationId { get; set; }
 
 		public int Delay
@@ -37,7 +37,7 @@ namespace CoffeeTable.Messaging.Handling
 			Success = false;
 			TimedOut = true;
 			Completed = DateTime.Now;
-			Details = $"Timed out";
+			Details = "Timeout";
 		}
 	}
 

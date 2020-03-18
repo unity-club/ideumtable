@@ -10,13 +10,13 @@ using System.Threading.Tasks;
 namespace CoffeeTable.Manifests
 {
 	/// <summary>
-	/// Represents the JSON manifest containing information about an application.
+	/// Represents information about an application
 	/// </summary>
 	/// <remarks>
 	/// This class should represent the JSON manifest file stored at the root level of the Appdata/Roaming/CoffeeTable/Apps/[ApplicationName] folder.
 	/// This folder is known as the "application folder" and contains all the files needed for an application to be run by the backend service.
 	/// </remarks>
-	public class ApplicationFileManifest
+	public class Application
 	{
 		/// <summary>
 		/// An enumeration representing the type of this application
