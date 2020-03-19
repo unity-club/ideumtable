@@ -107,7 +107,10 @@ namespace CoffeeTable.Messaging.Handling
 					object data = null;
 					if (!exchangeDataType.Equals(Null.NullType))
 					{
-						try { data = JsonConvert.DeserializeObject(message.Data, exchangeDataType); }
+						try {
+							if (string.IsNullOrWhiteSpace(message.Data)) data = null;
+							else data = JsonConvert.DeserializeObject(message.Data, exchangeDataType);
+						}
 						catch (JsonException)
 						{
 							exchange.Success = false;
@@ -139,7 +142,10 @@ namespace CoffeeTable.Messaging.Handling
 						object requestData = null;
 						if (!requestHandlerInfo.RequestType.Equals(Null.NullType))
 						{
-							try { requestData = JsonConvert.DeserializeObject(message.Data, requestHandlerInfo.RequestType); }
+							try {
+								if (string.IsNullOrWhiteSpace(message.Data)) requestData = null;
+								else requestData = JsonConvert.DeserializeObject(message.Data, requestHandlerInfo.RequestType);
+							}
 							catch (JsonException) { continue; }
 						}
 
@@ -178,6 +184,21 @@ namespace CoffeeTable.Messaging.Handling
 						
 						mConnectionBinder?.Invoke(responseMessage);
 					}
+				}
+				else
+				{
+					// No such request found, respond back with this message
+
+					Message responseMessage = new Message()
+					{
+						CorrelationId = message.Id,
+						DestinationId = message.SenderId,
+						Success = false,
+						Details = $"No such request: '{message.Request}'",
+						Data = null
+					};
+
+					mConnectionBinder?.Invoke(responseMessage);
 				}
 			}
 		}

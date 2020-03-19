@@ -37,7 +37,7 @@ namespace CoffeeTable.Messaging.Tests
 		{
 			Stopwatch st = new Stopwatch();
 			st.Start();
-			var data = await handlerB.Send<Data<int>>(0, "tESt", new List<int> { 1, 2, 3, 4 });
+			var data = await handlerB.Send<Data<int>>(0, "tESt1", new List<int> { 1, 2, 3, 4 });
 			st.Stop();
 			Console.WriteLine($"Send Message Operation took {st.ElapsedMilliseconds} ms and was " + (data.Success ? "successful." : "not successful."));
 		}

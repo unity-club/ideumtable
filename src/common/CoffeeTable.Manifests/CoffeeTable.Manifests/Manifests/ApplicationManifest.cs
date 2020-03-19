@@ -16,27 +16,8 @@ namespace CoffeeTable.Manifests
 	/// This class should represent the JSON manifest file stored at the root level of the Appdata/Roaming/CoffeeTable/Apps/[ApplicationName] folder.
 	/// This folder is known as the "application folder" and contains all the files needed for an application to be run by the backend service.
 	/// </remarks>
-	public class Application
+	public class ApplicationManifest
 	{
-		/// <summary>
-		/// An enumeration representing the type of this application
-		/// </summary>
-		public enum ApplicationType
-		{
-			/// <summary>
-			/// A standard application that runs on the CoffeeTable
-			/// </summary>
-			Application = 0,
-			/// <summary>
-			/// An application representing the sidebars on the CoffeeTable
-			/// </summary>
-			Sidebar = 1,
-			/// <summary>
-			/// An application representing the homescreen on the CoffeeTable
-			/// </summary>
-			Homescreen = 2
-		}
-
 		/// <summary>
 		/// The name of the application.
 		/// </summary>
@@ -50,6 +31,11 @@ namespace CoffeeTable.Manifests
 		[JsonConverter(typeof(StringEnumConverter))]
 		public ApplicationType Type { get; set; }
 		/// <summary>
+		/// Whether this application should be launched in fullscreen or halfscreen mode.
+		/// </summary>
+		[JsonConverter(typeof(StringEnumConverter))]
+		public FullscreenLaunchType LaunchType { get; set; }
+		/// <summary>
 		/// The author(s) of the application.
 		/// </summary>
 		public string Author { get; set; }
@@ -61,5 +47,9 @@ namespace CoffeeTable.Manifests
 		/// The path to the executable file of this application, relative to the application folder.
 		/// </summary>
 		public string ExecutablePath { get; set; }
+		/// <summary>
+		/// A string identifying which subroutine the backend service should use to launch the application.
+		/// </summary>
+		public string LauncherName { get; set; }
 	}
 }

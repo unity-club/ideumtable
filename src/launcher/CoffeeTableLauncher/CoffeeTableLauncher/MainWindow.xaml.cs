@@ -166,8 +166,8 @@ namespace CoffeeTableLauncher
 			mAppBindings.Sort((a, b) => a.Name.CompareTo(b.Name));
 
 			// move the sidebar and homescreen apps to the front of the list
-			mAppBindings.PrependElement(x => x.Type == CoffeeTable.Manifests.Application.ApplicationType.Homescreen);
-			mAppBindings.PrependElement(x => x.Type == CoffeeTable.Manifests.Application.ApplicationType.Sidebar);
+			mAppBindings.PrependElement(x => x.Type == ApplicationType.Homescreen);
+			mAppBindings.PrependElement(x => x.Type == ApplicationType.Sidebar);
 
 			ItemList.ItemsSource = null;
 			ItemList.ItemsSource = mAppBindings;
@@ -239,7 +239,7 @@ namespace CoffeeTableLauncher
 			public string Name { get; set; }
 			public string Authors { get; set; }
 			public string Description { get; set; }
-			public CoffeeTable.Manifests.Application.ApplicationType Type;
+			public ApplicationType Type;
 		}
 
 		private async Task<ApplicationData> ExtractApplicationData (string applicationPath)
@@ -252,7 +252,7 @@ namespace CoffeeTableLauncher
 			}
 
 			// Get the manifest file inside of the application zip
-			CoffeeTable.Manifests.Application appManifest;
+			CoffeeTable.Manifests.ApplicationManifest appManifest;
 			BitmapImage appIcon;
 			ZipFile zip;
 			try { zip = ZipFile.Read(applicationPath); }
@@ -291,7 +291,7 @@ namespace CoffeeTableLauncher
 					return null;
 				}
 
-				try { appManifest = JsonConvert.DeserializeObject<CoffeeTable.Manifests.Application>(appManifestJson); }
+				try { appManifest = JsonConvert.DeserializeObject<CoffeeTable.Manifests.ApplicationManifest>(appManifestJson); }
 				catch (JsonException)
 				{
 					AddApp_BadFormattingError();
@@ -341,8 +341,8 @@ namespace CoffeeTableLauncher
 			string manifestFile = (from file in appDirectory.EnumerateFiles()
 									 where file.Name.Equals(MANIFEST, StringComparison.OrdinalIgnoreCase)
 									 select file).FirstOrDefault()?.FullName;
-			CoffeeTable.Manifests.Application appManifest;
-			try { appManifest = JsonConvert.DeserializeObject<CoffeeTable.Manifests.Application>(File.ReadAllText(manifestFile)); }
+			CoffeeTable.Manifests.ApplicationManifest appManifest;
+			try { appManifest = JsonConvert.DeserializeObject<CoffeeTable.Manifests.ApplicationManifest>(File.ReadAllText(manifestFile)); }
 			catch { return null; }
 
 			// Get app icon
@@ -366,7 +366,7 @@ namespace CoffeeTableLauncher
 			return binding;
 		}
 
-		private ApplicationData GetAppBinding (CoffeeTable.Manifests.Application appManifest)
+		private ApplicationData GetAppBinding (CoffeeTable.Manifests.ApplicationManifest appManifest)
 		{
 			return new ApplicationData
 			{
@@ -499,8 +499,8 @@ namespace CoffeeTableLauncher
 			}
 
 			// Check that there is a sidebar and a homescreen application loaded
-			if (!mAppBindings.Any(x => x.Type == CoffeeTable.Manifests.Application.ApplicationType.Homescreen)
-				|| !mAppBindings.Any(x => x.Type == CoffeeTable.Manifests.Application.ApplicationType.Sidebar))
+			if (!mAppBindings.Any(x => x.Type == ApplicationType.Homescreen)
+				|| !mAppBindings.Any(x => x.Type == ApplicationType.Sidebar))
 			{
 				await this.ShowMessageAsync(HEADER_DEPLOY_FAILURE, "No sidebar application or homescreen application could be found. Have you added them?");
 				return;
