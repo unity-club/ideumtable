@@ -33,8 +33,7 @@ namespace CoffeeTable.Manifests
 		/// <summary>
 		/// Whether this application should be launched in fullscreen or halfscreen mode.
 		/// </summary>
-		[JsonConverter(typeof(StringEnumConverter))]
-		public FullscreenLaunchType LaunchType { get; set; }
+		public bool LaunchInFullscreen { get; set; }
 		/// <summary>
 		/// The author(s) of the application.
 		/// </summary>
@@ -48,7 +47,7 @@ namespace CoffeeTable.Manifests
 		/// </summary>
 		public string ExecutablePath { get; set; }
 		/// <summary>
-		/// A string identifying which subroutine the backend service should use to launch the application.
+		/// A2019 string identifying which subroutine the backend service should use to launch the application.
 		/// </summary>
 		public string LauncherName { get; set; }
 	}

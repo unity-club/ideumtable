@@ -27,6 +27,8 @@ namespace CoffeeTable.Module.Applications
 		private List<Application> mApplications = new List<Application>();
 		private List<ApplicationInstance> mAppInstances = new List<ApplicationInstance>();
 
+		private ApplicationInstance mLeftSidebar, mRightSidebar, mHomescreen;
+
 		private ILauncher mDefaultLauncher;
 		private Dictionary<string, ILauncher> mLauncherMap = new Dictionary<string, ILauncher>();
 
@@ -157,7 +159,7 @@ namespace CoffeeTable.Module.Applications
 		{
 			if (app == null) return null;
 
-			if (!IsLaunchable(app)) return null;
+			if (!IsLaunchableWithLayout(app, out ApplicationLayout appLayout)) return null;
 
 			ILauncher appLauncher;
 			if (!mLauncherMap.TryGetValue(app.LauncherName, out appLauncher)) appLauncher = mDefaultLauncher;
@@ -169,10 +171,18 @@ namespace CoffeeTable.Module.Applications
 			// Get callback on process exitted
 			appProcess.EnableRaisingEvents = true;
 			appProcess.Exited += (o, e) => DestroyApplicationInstance(instance);
-
 			instance.State = ApplicationState.Starting;
-			mMessageRouter.OnApplicationInstanceCreated(instance);
+			instance.Layout = appLayout;
 
+			// Cache sidebars and homescreen instances when they are created
+			if (instance.App.Type == ApplicationType.Sidebar)
+			{
+				if (instance.Layout == ApplicationLayout.LeftPanel) mLeftSidebar = instance;
+				else if (instance.Layout == ApplicationLayout.RightPanel) mRightSidebar = instance;
+			}
+			else if (instance.App.Type == ApplicationType.Homescreen) mHomescreen = instance;
+
+			mMessageRouter.OnApplicationInstanceCreated(instance);
 			AnimateWindow(instance);
 
 			return instance;
@@ -184,18 +194,46 @@ namespace CoffeeTable.Module.Applications
 			instance.State = ApplicationState.Running;
 		}
 
-		private bool IsLaunchable (Application app)
+		// Returns true if the given application can be launched, and false if it cannot.
+		// If the application can be launched, produces the layout it will be launched with.
+		private bool IsLaunchableWithLayout (Application app, out ApplicationLayout layout)
 		{
-			if (app.Type == ApplicationType.Sidebar)
-				return mAppInstances.Where(a => a.App.Type == ApplicationType.Sidebar).Count() < 2;
-			if (app.Type == ApplicationType.Homescreen)
-				return !mAppInstances.Any(a => a.App.Type == ApplicationType.Homescreen);
+			layout = ApplicationLayout.Fullscreen;
+			switch (app.Type)
+			{
+				case ApplicationType.Sidebar:
+					int sidebarCount = mAppInstances.Where(i => i.App.Type == ApplicationType.Sidebar).Count();
+					if (sidebarCount == 0) layout = ApplicationLayout.LeftPanel;
+					else if (sidebarCount == 1) layout = ApplicationLayout.RightPanel;
+					else if (sidebarCount >= 2) return false;
+					return true;
 
-			if (mAppInstances.Any(a => a.IsFullscreen)) return false;
+				case ApplicationType.Homescreen:
+					return mAppInstances.Any(i => i.App.Type == ApplicationType.Homescreen);
 
-			int appCount = mAppInstances.Where(a => a.App.Type == ApplicationType.Application).Count();
-			if (app.LaunchType == FullscreenLaunchType.StartInFullScreen) return appCount == 0;
-			else return appCount < 2;
+				case ApplicationType.Application:
+					if (mAppInstances.Any(i => i.Layout == ApplicationLayout.Fullscreen))
+						return false;
+					if (app.LaunchInFullscreen) return !mAppInstances.Any(i => i.App.Type == ApplicationType.Application);
+					else
+					{
+						// This application wants to be launched in half-screen,
+						// so we will attempt to find a half of the screen where it can live.
+						if (!mAppInstances.Any(i => i.Layout == ApplicationLayout.LeftPanel))
+						{
+							layout = ApplicationLayout.LeftPanel;
+							return true;
+						}
+						else if (!mAppInstances.Any(i => i.Layout == ApplicationLayout.RightPanel))
+						{
+							layout = ApplicationLayout.RightPanel;
+							return true;
+						}
+						return false;
+					}
+
+				default: return false;
+			}
 		}
 
 		// Call immediately after an ApplicationInstance's process has been terminated

@@ -11,13 +11,13 @@ namespace CoffeeTable.Module.Applications
 {
 	public class ApplicationInstance
 	{
-		private static uint _id = 1;
+		private static uint _id = 2;
 
 		public uint Id { get; }
 		public Application App { get; }
 		public Process Process { get; }
 		public int ProcessId => Process?.Id ?? 0;
-		public bool IsFullscreen { get; set; }
+		public ApplicationLayout Layout { get; set; }
 		public ConnectionStatus Connection { get; set; }
 		public ApplicationState State { get; set; }
 

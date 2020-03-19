@@ -153,6 +153,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(OutDir)CoffeeTable.Windows.dll" "$(ProjectDir)..\..\..\service\cs0193-RD-Service.Modules.CoffeeTable\src\Modules.CoffeeTable\dll\" /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="framework.h" />

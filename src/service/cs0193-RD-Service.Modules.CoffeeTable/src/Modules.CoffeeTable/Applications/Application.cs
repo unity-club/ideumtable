@@ -20,7 +20,7 @@ namespace CoffeeTable.Module.Applications
 		public string ExecutablePath { get; private set; }
 		public string IconPath { get; private set; }
 		public string LauncherName { get; private set; }
-		public FullscreenLaunchType LaunchType { get; private set; }
+		public bool LaunchInFullscreen { get; private set; }
 
 		public static Application CreateFromManifest(ApplicationManifest manifest, string executablePath, string iconPath)
 		{
@@ -35,7 +35,7 @@ namespace CoffeeTable.Module.Applications
 				ExecutablePath = executablePath,
 				IconPath = iconPath,
 				LauncherName = manifest.LauncherName,
-				LaunchType = manifest.LaunchType
+				LaunchInFullscreen = manifest.LaunchInFullscreen
 			};
 		}
 

@@ -27,8 +27,7 @@ namespace CoffeeTable.Messaging.Tests
 			handlerA.Register(new A());
 			handlerB.Timeout = 2000;
 
-			for (int i = 0; i < 1000; i++)
-				SendMessage();
+			SendMessage();
 
 			Console.Read();
 		}
@@ -37,7 +36,7 @@ namespace CoffeeTable.Messaging.Tests
 		{
 			Stopwatch st = new Stopwatch();
 			st.Start();
-			var data = await handlerB.Send<Data<int>>(0, "tESt1", new List<int> { 1, 2, 3, 4 });
+			var data = await handlerB.Send(0, "tESt", 512);
 			st.Stop();
 			Console.WriteLine($"Send Message Operation took {st.ElapsedMilliseconds} ms and was " + (data.Success ? "successful." : "not successful."));
 		}
@@ -45,10 +44,8 @@ namespace CoffeeTable.Messaging.Tests
 		class A
 		{
 			[RequestHandler("TesT")]
-			async void handler(Request<List<int>> request, Response<Data<int>> response)
+			void handler(Request<uint?> request, Response<Null> response)
 			{
-				response.Data = new Data<int>();
-				response.Data.GenericField = 10;
 				;
 			}
 		}

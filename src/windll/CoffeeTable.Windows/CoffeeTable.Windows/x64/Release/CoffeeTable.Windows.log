@@ -1,0 +1,10 @@
+﻿  WindowFunctions.cpp
+     Creating library C:\Users\Jacob\ideumtable\src\windll\CoffeeTable.Windows\x64\Release\CoffeeTable.Windows.lib and object C:\Users\Jacob\ideumtable\src\windll\CoffeeTable.Windows\x64\Release\CoffeeTable.Windows.exp
+  Generating code
+  1 of 5 functions (20.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  CoffeeTable.Windows.vcxproj -> C:\Users\Jacob\ideumtable\src\windll\CoffeeTable.Windows\x64\Release\CoffeeTable.Windows.dll
+  C:\Users\Jacob\ideumtable\src\windll\CoffeeTable.Windows\x64\Release\CoffeeTable.Windows.dll
+  1 File(s) copied

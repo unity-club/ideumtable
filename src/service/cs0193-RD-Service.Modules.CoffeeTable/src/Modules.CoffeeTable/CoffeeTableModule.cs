@@ -1,5 +1,6 @@
 ﻿using CoffeeTable.Module.Applications;
 using CoffeeTable.Module.Messaging;
+using CoffeeTable.Module.Window;
 using Ideum;
 using Ideum.Networking.Transport;
 using System;
@@ -22,9 +23,15 @@ namespace CoffeeTable.Module
 		{
 			base.Initialize();
 
-			mMessageRouter = new MessageRouter(Service.Send);
-			mAppManager = new ApplicationManager(mMessageRouter);
-			
+			//mMessageRouter = new MessageRouter(Service.Send);
+			//mAppManager = new ApplicationManager(mMessageRouter);
+
+			int width, height;
+			NativeMethods.GetScreenResolution(out width, out height);
+			Log.Info($"Screen resolution is {width}x{height}");
+
+			NativeMethods.StyleWindow(Process.GetCurrentProcess().MainWindowHandle, true);
+			NativeMethods.SetWindowCoords(Process.GetCurrentProcess().MainWindowHandle, 0, 0, width, height);
 		}
 
 		protected override void Deinitialize()
