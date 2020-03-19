@@ -11,11 +11,21 @@ namespace CoffeeTable.Module.Applications
 {
 	public class ApplicationInstance
 	{
-		public uint Id { get; private set; }
-		public Application App { get; private set; }
-		public Process Process { get; private set; }
-		public int ProcessId => Process.Id;
+		private static uint _id = 1;
+
+		public uint Id { get; }
+		public Application App { get; }
+		public Process Process { get; }
+		public int ProcessId => Process?.Id ?? 0;
 		public bool IsFullscreen { get; set; }
 		public ConnectionStatus Connection { get; set; }
+		public ApplicationState State { get; set; }
+
+		public ApplicationInstance(Application app, Process process)
+		{
+			Id = _id++;
+			App = app;
+			Process = process;
+		}
 	}
 }

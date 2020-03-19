@@ -23,16 +23,15 @@ namespace CoffeeTable.Module.Applications
 		private const string AppManifestFileName = "manifest.json";
 
 		private IMessageRouter mMessageRouter;
-		private ILog mLog;
+		private ILog mLog = LogManager.GetLogger(typeof(ApplicationManager));
 		private List<Application> mApplications = new List<Application>();
 		private List<ApplicationInstance> mAppInstances = new List<ApplicationInstance>();
 
 		private ILauncher mDefaultLauncher;
 		private Dictionary<string, ILauncher> mLauncherMap = new Dictionary<string, ILauncher>();
 
-		public ApplicationManager(ILog logger, IMessageRouter router)
+		public ApplicationManager(IMessageRouter router)
 		{
-			mLog = logger;
 			mMessageRouter = router;
 
 			RegisterLaunchers();
@@ -133,7 +132,7 @@ namespace CoffeeTable.Module.Applications
 
 				ILauncher launcher = Activator.CreateInstance(launcherPair.LauncherType) as ILauncher;
 				mLauncherMap.Add(launcherPair.Attr.LauncherName, launcher);
-				mLog.Info($"Registered launcher mapping: {{{launcherPair.Attr.LauncherName} -> [{launcherPair.LauncherType.Name}]}}");
+				mLog.Info($"Registered launcher mapping: {{{launcherPair.Attr.LauncherName} -> {launcherPair.LauncherType.Name}}}");
 
 				if (launcher is DefaultLauncher)
 					mDefaultLauncher = launcher;
@@ -165,7 +164,24 @@ namespace CoffeeTable.Module.Applications
 			Process appProcess = appLauncher.LaunchApplication(app);
 			if (appProcess == null) return null;
 
-			return null;
+			ApplicationInstance instance = new ApplicationInstance(app, appProcess);
+
+			// Get callback on process exitted
+			appProcess.EnableRaisingEvents = true;
+			appProcess.Exited += (o, e) => DestroyApplicationInstance(instance);
+
+			instance.State = ApplicationState.Starting;
+			mMessageRouter.OnApplicationInstanceCreated(instance);
+
+			AnimateWindow(instance);
+
+			return instance;
+		}
+
+		private async void AnimateWindow (ApplicationInstance instance)
+		{
+			await Task.Delay(10000);
+			instance.State = ApplicationState.Running;
 		}
 
 		private bool IsLaunchable (Application app)
@@ -176,7 +192,19 @@ namespace CoffeeTable.Module.Applications
 				return !mAppInstances.Any(a => a.App.Type == ApplicationType.Homescreen);
 
 			if (mAppInstances.Any(a => a.IsFullscreen)) return false;
-			return mAppInstances.Where(a => a.App.Type == ApplicationType.Application).Count() < 2;
+
+			int appCount = mAppInstances.Where(a => a.App.Type == ApplicationType.Application).Count();
+			if (app.LaunchType == FullscreenLaunchType.StartInFullScreen) return appCount == 0;
+			else return appCount < 2;
+		}
+
+		// Call immediately after an ApplicationInstance's process has been terminated
+		// and its window closed
+		private void DestroyApplicationInstance (ApplicationInstance instance)
+		{
+			instance.State = ApplicationState.Destroyed;
+			mAppInstances.Remove(instance);
+			mMessageRouter.OnApplicationInstanceDestroyed(instance);
 		}
 	}
 }

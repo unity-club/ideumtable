@@ -160,7 +160,7 @@ namespace CoffeeTable.Module.Messaging
 			mServiceSender.Invoke(clientId, raw);
 		}
 
-		private Message GetNoSuchDestinationResponse (uint messageId)
+		private static Message GetNoSuchDestinationResponse (uint messageId)
 		{
 			return new Message()
 			{

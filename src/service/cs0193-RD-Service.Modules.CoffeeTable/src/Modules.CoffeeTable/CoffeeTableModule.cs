@@ -23,7 +23,7 @@ namespace CoffeeTable.Module
 			base.Initialize();
 
 			mMessageRouter = new MessageRouter(Service.Send);
-			mAppManager = new ApplicationManager(Log, mMessageRouter);
+			mAppManager = new ApplicationManager(mMessageRouter);
 			
 		}
 

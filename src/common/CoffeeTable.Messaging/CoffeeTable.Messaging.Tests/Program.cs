@@ -45,7 +45,7 @@ namespace CoffeeTable.Messaging.Tests
 		class A
 		{
 			[RequestHandler("TesT")]
-			void handler(Request<List<int>> request, Response<Data<int>> response)
+			async void handler(Request<List<int>> request, Response<Data<int>> response)
 			{
 				response.Data = new Data<int>();
 				response.Data.GenericField = 10;
