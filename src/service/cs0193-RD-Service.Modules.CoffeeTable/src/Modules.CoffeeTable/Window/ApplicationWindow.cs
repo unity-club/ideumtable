@@ -16,19 +16,10 @@ namespace CoffeeTable.Module.Window
 		/// <summary>
 		/// Represents the <see cref="Rect"/> that the window occupies when this application is closed
 		/// </summary>
-		public Rect ClosedRect { get; }
+		public Rect ClosedRect { get; set; }
 		/// <summary>
 		/// Represents the <see cref="Rect"/> that the window occupies when this application is open and running
 		/// </summary>
-		public Rect OpenRect { get; }
-
-		/// <summary>
-		/// Configures the window's <see cref="ClosedRect"/> and <see cref="OpenRect"/> properties to correspond with the given application instance's desired layout.
-		/// </summary>
-		/// <param name="instance"></param>
-		public void Configure (ApplicationInstance instance)
-		{
-
-		}
+		public Rect OpenRect { get; set; }
 	}
 }

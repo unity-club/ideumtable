@@ -18,11 +18,9 @@ namespace CoffeeTable.Module.Window
 		internal static extern bool GetWindowCoords(IntPtr handle, out int x, out int y, out int width, out int height);
 
 		[DllImport(WindowFunctionsDll)]
-		internal static extern void StyleWindow(IntPtr handle, bool flag);
+		internal static extern void StyleWindow(IntPtr handle);
 
 		[DllImport(WindowFunctionsDll)]
 		internal static extern void SetWindowCoords(IntPtr handle, int x, int y, int cx, int cy);
-
-
 	}
 }

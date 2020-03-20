@@ -17,21 +17,22 @@ namespace CoffeeTable.Module
 	public class CoffeeTableModule : ModuleBase, ITransportLayerReceiver, ITransportLayerDisconnectReceiver
 	{
 		private ApplicationManager mAppManager;
+		private IWindowManager mWindowManager;
 		private IMessageRouter mMessageRouter;
 
-		protected override void Initialize()
+		protected override async void Initialize()
 		{
 			base.Initialize();
 
-			//mMessageRouter = new MessageRouter(Service.Send);
-			//mAppManager = new ApplicationManager(mMessageRouter);
+			mWindowManager = new WindowManager();
+			mMessageRouter = new MessageRouter(Service.Send);
+			mAppManager = new ApplicationManager(mMessageRouter, mWindowManager);
 
-			int width, height;
-			NativeMethods.GetScreenResolution(out width, out height);
-			Log.Info($"Screen resolution is {width}x{height}");
-
-			NativeMethods.StyleWindow(Process.GetCurrentProcess().MainWindowHandle, true);
-			NativeMethods.SetWindowCoords(Process.GetCurrentProcess().MainWindowHandle, 0, 0, width, height);
+			var inst = mAppManager.LaunchApplication(mAppManager.GetApplication("RollABall"));
+			Thread.Sleep(5000);
+			await mWindowManager.AnimateWindow(inst, AnimateWindowMode.CloseWindow);
+			inst.Process.Kill();
+			;
 		}
 
 		protected override void Deinitialize()

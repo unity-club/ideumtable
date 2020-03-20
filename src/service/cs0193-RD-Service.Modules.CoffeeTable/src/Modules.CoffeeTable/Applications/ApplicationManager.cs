@@ -1,6 +1,7 @@
 ﻿using CoffeeTable.Manifests;
 using CoffeeTable.Module.Launchers;
 using CoffeeTable.Module.Messaging;
+using CoffeeTable.Module.Window;
 using Ideum;
 using Newtonsoft.Json;
 using System;
@@ -23,6 +24,7 @@ namespace CoffeeTable.Module.Applications
 		private const string AppManifestFileName = "manifest.json";
 
 		private IMessageRouter mMessageRouter;
+		private IWindowManager mWindowManager;
 		private ILog mLog = LogManager.GetLogger(typeof(ApplicationManager));
 		private List<Application> mApplications = new List<Application>();
 		private List<ApplicationInstance> mAppInstances = new List<ApplicationInstance>();
@@ -32,9 +34,10 @@ namespace CoffeeTable.Module.Applications
 		private ILauncher mDefaultLauncher;
 		private Dictionary<string, ILauncher> mLauncherMap = new Dictionary<string, ILauncher>();
 
-		public ApplicationManager(IMessageRouter router)
+		public ApplicationManager(IMessageRouter router, IWindowManager windowManager)
 		{
 			mMessageRouter = router;
+			mWindowManager = windowManager;
 
 			RegisterLaunchers();
 			RegisterApplications();
@@ -162,7 +165,7 @@ namespace CoffeeTable.Module.Applications
 			if (!IsLaunchableWithLayout(app, out ApplicationLayout appLayout)) return null;
 
 			ILauncher appLauncher;
-			if (!mLauncherMap.TryGetValue(app.LauncherName, out appLauncher)) appLauncher = mDefaultLauncher;
+			if (!mLauncherMap.TryGetValue(app.LauncherName ?? string.Empty, out appLauncher)) appLauncher = mDefaultLauncher;
 			Process appProcess = appLauncher.LaunchApplication(app);
 			if (appProcess == null) return null;
 
@@ -182,15 +185,29 @@ namespace CoffeeTable.Module.Applications
 			}
 			else if (instance.App.Type == ApplicationType.Homescreen) mHomescreen = instance;
 
+			mWindowManager.OnApplicationInstanceCreated(instance);
 			mMessageRouter.OnApplicationInstanceCreated(instance);
-			AnimateWindow(instance);
+
+			// Configure window and animate the window in
+			OpenWindowAnimation(instance);
 
 			return instance;
 		}
 
-		private async void AnimateWindow (ApplicationInstance instance)
+		private async void OpenWindowAnimation (ApplicationInstance instance)
 		{
-			await Task.Delay(10000);
+			mWindowManager.ConfigureApplicationWindow(instance);
+
+			//
+			// TODO: VERY TEMPORARY
+			//
+			while (string.IsNullOrEmpty(instance.Process.MainWindowTitle))
+			{
+				System.Threading.Thread.Sleep(50);
+				instance.Process.Refresh();
+			}
+
+			await mWindowManager.AnimateWindow(instance, AnimateWindowMode.OpenWindow);
 			instance.State = ApplicationState.Running;
 		}
 

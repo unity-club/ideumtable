@@ -9,13 +9,21 @@ namespace CoffeeTable.Module.Window
 {
 	public struct Rect : IEquatable<Rect>
 	{
-		public int MinX { get; set; }
-		public int MinY { get; set; }
-		public int MaxX { get; set; }
-		public int MaxY { get; set; }
+		public static readonly Rect Zero = new Rect
+		{
+			MinX = 0,
+			MinY = 0,
+			MaxX = 0,
+			MaxY = 0
+		};
 
-		public int Width => MaxX - MinX;
-		public int Height => MaxY - MinY;
+		public float MinX { get; set; }
+		public float MinY { get; set; }
+		public float MaxX { get; set; }
+		public float MaxY { get; set; }
+
+		public float Width => MaxX - MinX;
+		public float Height => MaxY - MinY;
 
 		public override bool Equals(object obj) => obj is Rect r && Equals(r);
 		public override int GetHashCode() => HashCode.Combine(MinX, MinY, MaxX, MaxY);

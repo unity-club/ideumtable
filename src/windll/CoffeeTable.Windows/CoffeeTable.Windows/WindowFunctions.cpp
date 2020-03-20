@@ -26,7 +26,7 @@ EXPORT bool GetWindowCoords(HWND handle, int& x, int& y, int& width, int& height
 }
 
 /* Styles the given window accordingly so that it is borderless. */
-EXPORT void StyleWindow(HWND handle, bool flag) {
+EXPORT void StyleWindow(HWND handle) {
 	SetWindowLongPtr(handle, GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_TOPMOST);
 	SetWindowLongPtr(handle, GWL_STYLE, WS_POPUP | WS_VISIBLE);
 	SetWindowPos(handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_SHOWWINDOW | SW_MAXIMIZE);
