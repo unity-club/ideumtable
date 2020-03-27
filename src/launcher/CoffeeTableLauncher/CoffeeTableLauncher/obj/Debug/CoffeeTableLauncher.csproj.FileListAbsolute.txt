@@ -94,3 +94,5 @@ C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\o
 C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\obj\Debug\CoffeeTable.exe
 C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\obj\Debug\CoffeeTable.pdb
 C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\obj\Debug\CoffeeTableLauncher.csprojAssemblyReference.cache
+C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\bin\Debug\CoffeeTable.Common.dll
+C:\Users\Jacob\ideumtable\src\launcher\CoffeeTableLauncher\CoffeeTableLauncher\obj\Debug\CoffeeTable_Content.g.cs

@@ -1,4 +1,4 @@
-﻿using CoffeeTable.Manifests;
+﻿using CoffeeTable.Common.Manifests;
 using Ideum;
 using Newtonsoft.Json;
 using System;

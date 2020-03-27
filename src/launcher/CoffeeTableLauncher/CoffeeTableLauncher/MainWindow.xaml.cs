@@ -17,7 +17,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using MahApps.Metro.Controls.Dialogs;
 using System.IO;
-using CoffeeTable.Manifests;
+using CoffeeTable.Common.Manifests;
 using Newtonsoft.Json;
 using System.ComponentModel;
 
@@ -151,7 +151,7 @@ namespace CoffeeTableLauncher
 			List<string> failedBindings = new List<string>();
 			DirectoryInfo appsDirectory = new DirectoryInfo(AppsFolder);
 			appsDirectory.Refresh();
-			foreach (DirectoryInfo di in appsDirectory.GetDirectories("*", SearchOption.AllDirectories))
+			foreach (DirectoryInfo di in appsDirectory.GetDirectories("*", SearchOption.TopDirectoryOnly))
 			{
 				ApplicationData binding = GetApplicationData(di.FullName);
 				if (binding == null)
@@ -252,7 +252,7 @@ namespace CoffeeTableLauncher
 			}
 
 			// Get the manifest file inside of the application zip
-			CoffeeTable.Manifests.ApplicationManifest appManifest;
+			ApplicationManifest appManifest;
 			BitmapImage appIcon;
 			ZipFile zip;
 			try { zip = ZipFile.Read(applicationPath); }
@@ -291,7 +291,7 @@ namespace CoffeeTableLauncher
 					return null;
 				}
 
-				try { appManifest = JsonConvert.DeserializeObject<CoffeeTable.Manifests.ApplicationManifest>(appManifestJson); }
+				try { appManifest = JsonConvert.DeserializeObject<ApplicationManifest>(appManifestJson); }
 				catch (JsonException)
 				{
 					AddApp_BadFormattingError();
@@ -341,8 +341,8 @@ namespace CoffeeTableLauncher
 			string manifestFile = (from file in appDirectory.EnumerateFiles()
 									 where file.Name.Equals(MANIFEST, StringComparison.OrdinalIgnoreCase)
 									 select file).FirstOrDefault()?.FullName;
-			CoffeeTable.Manifests.ApplicationManifest appManifest;
-			try { appManifest = JsonConvert.DeserializeObject<CoffeeTable.Manifests.ApplicationManifest>(File.ReadAllText(manifestFile)); }
+			ApplicationManifest appManifest;
+			try { appManifest = JsonConvert.DeserializeObject<ApplicationManifest>(File.ReadAllText(manifestFile)); }
 			catch { return null; }
 
 			// Get app icon
@@ -366,7 +366,7 @@ namespace CoffeeTableLauncher
 			return binding;
 		}
 
-		private ApplicationData GetAppBinding (CoffeeTable.Manifests.ApplicationManifest appManifest)
+		private ApplicationData GetAppBinding (ApplicationManifest appManifest)
 		{
 			return new ApplicationData
 			{

@@ -1,4 +1,4 @@
-﻿using CoffeeTable.Manifests;
+﻿using CoffeeTable.Common.Manifests;
 using CoffeeTable.Module.Launchers;
 using CoffeeTable.Module.Messaging;
 using CoffeeTable.Module.Window;

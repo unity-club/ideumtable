@@ -1,0 +1,11 @@
+C:\Users\Jacob\ideumtable\src\common\CoffeeTable.Common\CoffeeTable.Common.Tests\bin\Release\CoffeeTable.Common.Tests.exe.config
+C:\Users\Jacob\ideumtable\src\common\CoffeeTable.Common\CoffeeTable.Common.Tests\bin\Release\CoffeeTable.Common.Tests.exe
+C:\Users\Jacob\ideumtable\src\common\CoffeeTable.Common\CoffeeTable.Common.Tests\bin\Release\CoffeeTable.Common.Tests.pdb
+C:\Users\Jacob\ideumtable\src\common\CoffeeTable.Common\CoffeeTable.Common.Tests\bin\Release\CoffeeTable.Common.dll
+C:\Users\Jacob\ideumtable\src\common\CoffeeTable.Common\CoffeeTable.Common.Tests\bin\Release\Newtonsoft.Json.dll
+C:\Users\Jacob\ideumtable\src\common\CoffeeTable.Common\CoffeeTable.Common.Tests\bin\Release\CoffeeTable.Common.pdb
+C:\Users\Jacob\ideumtable\src\common\CoffeeTable.Common\CoffeeTable.Common.Tests\bin\Release\Newtonsoft.Json.xml
+C:\Users\Jacob\ideumtable\src\common\CoffeeTable.Common\CoffeeTable.Common.Tests\obj\Release\CoffeeTable.Common.Tests.csprojAssemblyReference.cache
+C:\Users\Jacob\ideumtable\src\common\CoffeeTable.Common\CoffeeTable.Common.Tests\obj\Release\CoffeeTable.Common.Tests.csproj.CopyComplete
+C:\Users\Jacob\ideumtable\src\common\CoffeeTable.Common\CoffeeTable.Common.Tests\obj\Release\CoffeeTable.Common.Tests.exe
+C:\Users\Jacob\ideumtable\src\common\CoffeeTable.Common\CoffeeTable.Common.Tests\obj\Release\CoffeeTable.Common.Tests.pdb

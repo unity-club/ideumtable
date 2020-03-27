@@ -1,0 +1,8 @@
+C:\Users\Jacob\ideumtable\src\common\CoffeeTable.Common\CoffeeTable.Common\bin\Release\CoffeeTable.Common.dll
+C:\Users\Jacob\ideumtable\src\common\CoffeeTable.Common\CoffeeTable.Common\bin\Release\CoffeeTable.Common.pdb
+C:\Users\Jacob\ideumtable\src\common\CoffeeTable.Common\CoffeeTable.Common\bin\Release\Newtonsoft.Json.dll
+C:\Users\Jacob\ideumtable\src\common\CoffeeTable.Common\CoffeeTable.Common\bin\Release\Newtonsoft.Json.xml
+C:\Users\Jacob\ideumtable\src\common\CoffeeTable.Common\CoffeeTable.Common\obj\Release\CoffeeTable.Common.csprojAssemblyReference.cache
+C:\Users\Jacob\ideumtable\src\common\CoffeeTable.Common\CoffeeTable.Common\obj\Release\CoffeeTable.Common.csproj.CopyComplete
+C:\Users\Jacob\ideumtable\src\common\CoffeeTable.Common\CoffeeTable.Common\obj\Release\CoffeeTable.Common.dll
+C:\Users\Jacob\ideumtable\src\common\CoffeeTable.Common\CoffeeTable.Common\obj\Release\CoffeeTable.Common.pdb

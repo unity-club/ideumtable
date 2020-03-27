@@ -1,4 +1,4 @@
-﻿using CoffeeTable.Manifests;
+﻿using CoffeeTable.Common.Manifests;
 using CoffeeTable.Module.Applications;
 using Ideum;
 using System;
