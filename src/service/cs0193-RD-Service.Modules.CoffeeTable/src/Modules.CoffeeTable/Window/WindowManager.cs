@@ -47,7 +47,7 @@ namespace CoffeeTable.Module.Window
 		public void SizeWindow (ApplicationInstance instance)
 		{
 			if (instance == null) return;
-			Rect rect = GetApplicationRect(instance);
+			ApplicationRect rect = GetApplicationRect(instance);
 			instance.WindowRect = rect;
 			NativeMethods.SetWindowCoords(instance.Process.MainWindowHandle,
 				(int)Math.Round(rect.MinX),
@@ -56,14 +56,14 @@ namespace CoffeeTable.Module.Window
 				(int)Math.Round(rect.Height));
 		}
 
-		private Rect GetApplicationRect (ApplicationInstance instance)
+		private ApplicationRect GetApplicationRect (ApplicationInstance instance)
 		{
 			switch (instance.App.Type)
 			{
 				case ApplicationType.Sidebar:
 					if (instance.Layout == ApplicationLayout.LeftPanel)
 					{
-						return new Rect
+						return new ApplicationRect
 						{
 							MinX = 0,
 							MinY = 0,
@@ -73,7 +73,7 @@ namespace CoffeeTable.Module.Window
 					}
 					else if (instance.Layout == ApplicationLayout.RightPanel)
 					{
-						return new Rect
+						return new ApplicationRect
 						{
 							MinX = ScreenWidth * (1 - SidebarScreenPercentage),
 							MinY = 0,
@@ -84,13 +84,13 @@ namespace CoffeeTable.Module.Window
 					break;
 
 				case ApplicationType.Homescreen:
-					return Rect.Zero;
+					return ApplicationRect.Zero;
 
 				case ApplicationType.Application:
 					switch (instance.Layout)
 					{
 						case ApplicationLayout.Fullscreen:
-							return new Rect
+							return new ApplicationRect
 							{
 								MinX = mLeftSidebarThreshold,
 								MinY = 0,
@@ -98,7 +98,7 @@ namespace CoffeeTable.Module.Window
 								MaxY = ScreenHeight
 							};
 						case ApplicationLayout.LeftPanel:
-							return new Rect
+							return new ApplicationRect
 							{
 								MinX = mLeftSidebarThreshold,
 								MinY = 0,
@@ -106,7 +106,7 @@ namespace CoffeeTable.Module.Window
 								MaxY = ScreenHeight
 							};
 						case ApplicationLayout.RightPanel:
-							return new Rect
+							return new ApplicationRect
 							{
 								MinX = ScreenWidth / 2f,
 								MinY = 0,
@@ -117,7 +117,7 @@ namespace CoffeeTable.Module.Window
 					break;
 			}
 
-			return Rect.Zero;
+			return ApplicationRect.Zero;
 		}
 	}
 }

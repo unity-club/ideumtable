@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CoffeeTable.Module.Applications
+namespace CoffeeTable.Common.Manifests
 {
 	public enum ApplicationLayout
 	{

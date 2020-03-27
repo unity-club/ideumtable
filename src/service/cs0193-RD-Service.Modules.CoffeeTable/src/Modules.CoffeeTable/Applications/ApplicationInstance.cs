@@ -27,7 +27,7 @@ namespace CoffeeTable.Module.Applications
 		public ApplicationLayout Layout { get; set; }
 		public ConnectionStatus Connection { get; set; }
 		public ApplicationState State { get; set; }
-		public Rect WindowRect { get; set; }
+		public ApplicationRect WindowRect { get; set; }
 
 		public ApplicationInstance(Application app, Process process, ApplicationLayout layout)
 		{

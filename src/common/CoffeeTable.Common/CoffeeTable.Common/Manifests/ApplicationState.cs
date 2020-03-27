@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CoffeeTable.Module.Applications
+namespace CoffeeTable.Common.Manifests
 {
 	/// <summary>
 	/// Represents the life cycle state of an <see cref="ApplicationInstance"/>

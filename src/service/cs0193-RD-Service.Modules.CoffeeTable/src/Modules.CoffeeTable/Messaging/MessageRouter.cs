@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CoffeeTable.Common.Manifests;
 using CoffeeTable.Common.Messaging.Core;
 using CoffeeTable.Common.Messaging.Handling;
 using CoffeeTable.Module.Applications;

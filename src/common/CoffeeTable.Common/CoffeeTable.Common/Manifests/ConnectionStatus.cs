@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CoffeeTable.Module.Messaging
+namespace CoffeeTable.Common.Manifests
 {
 	public struct ConnectionStatus
 	{
