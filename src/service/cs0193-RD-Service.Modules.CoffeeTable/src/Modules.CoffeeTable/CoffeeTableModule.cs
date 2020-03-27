@@ -16,22 +16,21 @@ namespace CoffeeTable.Module
 	[Module("coffeetable")]
 	public class CoffeeTableModule : ModuleBase, ITransportLayerReceiver, ITransportLayerDisconnectReceiver
 	{
+		private ApplicationStore mApplicationStore;
 		private ApplicationManager mAppManager;
-		private IWindowManager mWindowManager;
-		private IMessageRouter mMessageRouter;
+		private WindowManager mWindowManager;
+		private MessageRouter mMessageRouter;
 
 		protected override async void Initialize()
 		{
 			base.Initialize();
 
-			mWindowManager = new WindowManager();
-			mMessageRouter = new MessageRouter(Service.Send);
-			mAppManager = new ApplicationManager(mMessageRouter, mWindowManager);
+			mApplicationStore = new ApplicationStore();
+			mWindowManager = new WindowManager(mApplicationStore);
+			mMessageRouter = new MessageRouter(mApplicationStore, Service.Send);
+			mAppManager = new ApplicationManager(mApplicationStore, mMessageRouter, mWindowManager);
 
-			var inst = mAppManager.LaunchApplication(mAppManager.GetApplication("RollABall"));
-			Thread.Sleep(5000);
-			await mWindowManager.AnimateWindow(inst, AnimateWindowMode.CloseWindow);
-			inst.Process.Kill();
+			var inst = mAppManager.LaunchApplication(mApplicationStore.GetApplication("RollABall"));
 			;
 		}
 

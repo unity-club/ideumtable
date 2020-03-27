@@ -34,6 +34,5 @@ EXPORT void StyleWindow(HWND handle) {
 
 /* Sets the given window's x-position, y-position, width and height. */
 EXPORT void SetWindowCoords(HWND handle, int x, int y, int cx, int cy) {
-	SetWindowPos(handle, HWND_TOPMOST, x, y, cx, cy, SWP_NOSIZE);
-	SetWindowPos(handle, HWND_TOPMOST, x, y, cx, cy, SWP_NOMOVE);
+	SetWindowPos(handle, HWND_TOPMOST, x, y, cx, cy, SWP_NOREDRAW);
 }

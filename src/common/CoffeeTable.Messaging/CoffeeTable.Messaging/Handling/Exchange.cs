@@ -41,7 +41,7 @@ namespace CoffeeTable.Messaging.Handling
 		}
 	}
 
-	public class Exchange<T> : Exchange
+	public class Exchange<T> : Exchange 
 	{
 		public T Data { get; set; }
 

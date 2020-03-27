@@ -14,11 +14,7 @@ namespace CoffeeTable.Module.Launchers
 		public Process LaunchApplication(Application app)
 		{
 			if (app == null) return null;
-			var p = new Process();
-			p.StartInfo = new ProcessStartInfo(app.ExecutablePath);
-			p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-			p.Start();
-			return p;
+			return Process.Start(app.ExecutablePath);
 		}
 	}
 }

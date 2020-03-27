@@ -12,19 +12,19 @@ using Newtonsoft.Json;
 
 namespace CoffeeTable.Module.Messaging
 {
-	public class MessageRouter : IMessageRouter
+	public class MessageRouter
 	{
 		private const string SubscriptionKeyword = "subscribe";
-		private const uint ModuleId = 1;
 		private const string ModuleName = "CoffeeTable";
 
 		public IMessagingHandler Handler { get; private set; }
 
 		private Action<uint, TcpMessage> mServiceSender;
-		private HashSet<ApplicationInstance> mAppInstances = new HashSet<ApplicationInstance>();
+		private ApplicationStore mApplicationStore;
 
-		public MessageRouter (Action<uint, TcpMessage> serviceSender)
+		public MessageRouter (ApplicationStore appStore, Action<uint, TcpMessage> serviceSender)
 		{
+			mApplicationStore = appStore;
 			mServiceSender = serviceSender;
 			Handler = new MessagingHandler(RouteMessageFromHandlerToClient);
 		}
@@ -42,7 +42,7 @@ namespace CoffeeTable.Module.Messaging
 			catch (JsonException) { return; }
 
 			// Find the connected application instance that represents the sender
-			ApplicationInstance sender = mAppInstances
+			ApplicationInstance sender = mApplicationStore.Instances
 				.Where(i => i.Connection.IsClientConnected && i.Connection.ServiceClientId == raw.ClientId)
 				.FirstOrDefault();
 
@@ -87,7 +87,7 @@ namespace CoffeeTable.Module.Messaging
 
 		public void OnClientDisconnected (IClient client)
 		{
-			var connected = mAppInstances
+			var connected = mApplicationStore.Instances
 				.Where(i => i.Connection.IsClientConnected && i.Connection.ServiceClientId == client.Id);
 
 			foreach (var instance in connected)
@@ -103,10 +103,10 @@ namespace CoffeeTable.Module.Messaging
 		{
 			message.SenderId = sender.Id;
 			message.SenderName = sender.App.Name;
-			if (message.DestinationId == ModuleId) Handler.Receive(message);
+			if (message.DestinationId == ApplicationInstance.ModuleId) Handler.Receive(message);
 			else
 			{
-				ApplicationInstance receiving = mAppInstances
+				ApplicationInstance receiving = mApplicationStore.Instances
 					.Where(i => i.Connection.IsClientConnected && i.Id == message.DestinationId)
 					.FirstOrDefault();
 				if (receiving != null)
@@ -118,7 +118,8 @@ namespace CoffeeTable.Module.Messaging
 		// Subscribes and connects and application with the given processId and clientId
 		private bool SubscribeClient (int processId, uint clientId)
 		{
-			ApplicationInstance instance = mAppInstances.Where(i => i.ProcessId == processId).FirstOrDefault();
+			ApplicationInstance instance = mApplicationStore.Instances
+				.Where(i => i.ProcessId == processId).FirstOrDefault();
 			if (instance == null) return false;
 			instance.Connection = new ConnectionStatus
 			{
@@ -132,12 +133,12 @@ namespace CoffeeTable.Module.Messaging
 		// Same as RouteMessage, but when the sender happens to be the service itself
 		private void RouteMessageFromHandlerToClient (Message message)
 		{
-			ApplicationInstance receiving = mAppInstances
+			ApplicationInstance receiving = mApplicationStore.Instances
 				.Where(i => i.Id == message.DestinationId && i.Connection.IsClientConnected)
 				.FirstOrDefault();
 			if (receiving != null)
 			{
-				message.SenderId = ModuleId;
+				message.SenderId = ApplicationInstance.ModuleId;
 				message.SenderName = ModuleName;
 				SendMessage(message, receiving.Connection.ServiceClientId);
 			} else if (message.CorrelationId == 0)
@@ -169,8 +170,5 @@ namespace CoffeeTable.Module.Messaging
 				Details = "No such destination"
 			};
 		}
-
-		public void OnApplicationInstanceCreated(ApplicationInstance instance) => mAppInstances.Add(instance);
-		public void OnApplicationInstanceDestroyed(ApplicationInstance instance) => mAppInstances.Remove(instance);
 	}
 }
