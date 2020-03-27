@@ -3,6 +3,7 @@ using Ideum;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,12 +11,14 @@ using System.Threading.Tasks;
 
 namespace CoffeeTable.Module.Applications
 {
-	public class ApplicationStore
+	public class ApplicationStore : IDisposable
 	{
 		private const string RootDirectoryName = "CoffeeTable";
 		private const string AppDirectoryName = "apps";
 		private const string IconFileName = "icon";
 		private const string AppManifestFileName = "manifest.json";
+
+		private bool mDisposed;
 
 		private HashSet<Application> mApplications = new HashSet<Application>();
 		private HashSet<ApplicationInstance> mAppInstances = new HashSet<ApplicationInstance>();
@@ -49,7 +52,7 @@ namespace CoffeeTable.Module.Applications
 
 		private void RegisterApplications()
 		{
-			string rootPath = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), RootDirectoryName, AppDirectoryName);
+			string rootPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), RootDirectoryName, AppDirectoryName);
 			if (!Directory.Exists(rootPath))
 			{
 				Directory.CreateDirectory(rootPath);
@@ -79,11 +82,11 @@ namespace CoffeeTable.Module.Applications
 				return null;
 			}
 
-			ApplicationManifest appManifest;
+			ApplicationManifest manifest;
 			try
 			{
 				string appManifestJson = File.ReadAllText(Path.Combine(appFolderDirectory.FullName, AppManifestFileName));
-				appManifest = JsonConvert.DeserializeObject<ApplicationManifest>(appManifestJson);
+				manifest = JsonConvert.DeserializeObject<ApplicationManifest>(appManifestJson);
 			}
 			catch (JsonException)
 			{
@@ -96,30 +99,32 @@ namespace CoffeeTable.Module.Applications
 							   where file.Exists && IconFileName.Equals(Path.GetFileNameWithoutExtension(file.FullName), StringComparison.OrdinalIgnoreCase)
 							   select file.FullName).FirstOrDefault();
 
-			// Convert to a proper application class
-			Application app = Application.CreateFromManifest(appManifest,
-				Path.Combine(appFolderDirectory.FullName, appManifest.ExecutablePath),
-				iconPath);
+			var executablePath = Path.Combine(appFolderDirectory.FullName, manifest.ExecutablePath);
 
 			// Validate the application
-			if (string.IsNullOrWhiteSpace(app.Name) || app.Name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+			if (string.IsNullOrWhiteSpace(manifest.Name) || manifest.Name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
 			{
 				Log.Warn($"Application '{appFolderDirectory.Name}' could not be parsed because it has an invalid application name specified in its manifest file.");
 				return null;
 			}
 
-			if (string.IsNullOrWhiteSpace(app.IconPath))
+			if (string.IsNullOrWhiteSpace(iconPath))
 			{
-				Log.Warn($"Application '{app.Name}' could not be parsed because an icon file could not be found in the root directory of the application.");
+				Log.Warn($"Application '{manifest.Name}' could not be parsed because an icon file could not be found in the root directory of the application.");
 				return null;
 			}
 
-			if (string.IsNullOrWhiteSpace(app.ExecutablePath) || !File.Exists(app.ExecutablePath))
+			if (string.IsNullOrWhiteSpace(manifest.ExecutablePath) || !File.Exists(executablePath))
 			{
-				Log.Warn($"Application '{app.Name}' could not be parsed because the application manifest did not specify an executable file relative to the root application folder," +
+				Log.Warn($"Application '{manifest.Name}' could not be parsed because the application manifest did not specify an executable file relative to the root application folder," +
 					$" or such an executable does not exist.");
 				return null;
 			}
+
+			// Convert to a proper application class
+			Application app = Application.CreateFromManifest(manifest,
+				executablePath,
+				iconPath);
 
 			return app;
 		}
@@ -150,6 +155,35 @@ namespace CoffeeTable.Module.Applications
 			bool success = mAppInstances.Remove(instance);
 			if (success) OnApplicationInstanceDestroyed?.Invoke(instance);
 			return success;
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected void Dispose(bool disposing)
+		{
+			if (mDisposed) return;
+
+			foreach (var instance in mAppInstances)
+			{
+				if (instance.Process == null) continue;
+				instance.Process.Refresh();
+				if (!instance.Process.HasExited)
+					try { 
+						instance.Process.Kill();
+					}
+					catch (Win32Exception) { }
+			}
+
+			mDisposed = true;
+		}
+
+		~ApplicationStore()
+		{
+			Dispose(false);
 		}
 	}
 }

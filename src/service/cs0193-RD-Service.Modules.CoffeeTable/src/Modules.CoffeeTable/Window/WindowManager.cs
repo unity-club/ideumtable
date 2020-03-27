@@ -15,10 +15,10 @@ namespace CoffeeTable.Module.Window
 		private const float SidebarScreenPercentage = 0.05f;
 
 		private static int ScreenWidth;
-		private static float _leftSidebarThreshold => SidebarScreenPercentage * ScreenWidth;
 		private static int ScreenHeight;
 
-		private static float _rightSidebarThreshold => ScreenWidth - SidebarScreenPercentage * ScreenWidth;
+		private float mLeftSidebarThreshold => mApplicationStore?.LeftSidebar?.WindowRect.MaxX ?? 0;
+		private float mRightSidebarThreshold => mApplicationStore?.RightSidebar?.WindowRect.MinX ?? ScreenWidth;
 
 		private ILog mLog = LogManager.GetLogger(typeof(ApplicationManager));
 
@@ -44,10 +44,11 @@ namespace CoffeeTable.Module.Window
 			return true;
 		}
 
-		private void SizeWindow (ApplicationInstance instance)
+		public void SizeWindow (ApplicationInstance instance)
 		{
 			if (instance == null) return;
 			Rect rect = GetApplicationRect(instance);
+			instance.WindowRect = rect;
 			NativeMethods.SetWindowCoords(instance.Process.MainWindowHandle,
 				(int)Math.Round(rect.MinX),
 				(int)Math.Round(rect.MinY),
@@ -66,7 +67,7 @@ namespace CoffeeTable.Module.Window
 						{
 							MinX = 0,
 							MinY = 0,
-							MaxX = _leftSidebarThreshold,
+							MaxX = SidebarScreenPercentage * ScreenWidth,
 							MaxY = ScreenHeight
 						};
 					}
@@ -74,7 +75,7 @@ namespace CoffeeTable.Module.Window
 					{
 						return new Rect
 						{
-							MinX = _rightSidebarThreshold,
+							MinX = ScreenWidth * (1 - SidebarScreenPercentage),
 							MinY = 0,
 							MaxX = ScreenWidth,
 							MaxY = ScreenHeight
@@ -91,15 +92,15 @@ namespace CoffeeTable.Module.Window
 						case ApplicationLayout.Fullscreen:
 							return new Rect
 							{
-								MinX = _leftSidebarThreshold,
+								MinX = mLeftSidebarThreshold,
 								MinY = 0,
-								MaxX = _rightSidebarThreshold,
+								MaxX = mRightSidebarThreshold,
 								MaxY = ScreenHeight
 							};
 						case ApplicationLayout.LeftPanel:
 							return new Rect
 							{
-								MinX = _leftSidebarThreshold,
+								MinX = mLeftSidebarThreshold,
 								MinY = 0,
 								MaxX = ScreenWidth / 2f,
 								MaxY = ScreenHeight
@@ -109,7 +110,7 @@ namespace CoffeeTable.Module.Window
 							{
 								MinX = ScreenWidth / 2f,
 								MinY = 0,
-								MaxX = _rightSidebarThreshold,
+								MaxX = mRightSidebarThreshold,
 								MaxY = ScreenHeight
 							};
 					}

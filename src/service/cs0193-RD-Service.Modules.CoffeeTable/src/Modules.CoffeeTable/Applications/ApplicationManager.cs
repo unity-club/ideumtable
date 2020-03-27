@@ -75,13 +75,12 @@ namespace CoffeeTable.Module.Applications
 			Process appProcess = appLauncher.LaunchApplication(app);
 			if (appProcess == null) return null;
 
-			ApplicationInstance instance = new ApplicationInstance(app, appProcess);
+			ApplicationInstance instance = new ApplicationInstance(app, appProcess, appLayout);
 
 			// Get callback on process exitted
 			appProcess.EnableRaisingEvents = true;
-			appProcess.Exited += (o, e) => DestroyApplicationInstance(instance);
+			appProcess.Exited += (o, e) => OnApplicationInstanceExitted(instance);
 			instance.State = ApplicationState.Starting;
-			instance.Layout = appLayout;
 
 			mApplicationStore.AddApplicationInstance(instance);
 
@@ -156,12 +155,33 @@ namespace CoffeeTable.Module.Applications
 
 		// Call immediately after an ApplicationInstance's process has been terminated
 		// and its window closed
-		private void DestroyApplicationInstance (ApplicationInstance instance)
+		private void OnApplicationInstanceExitted (ApplicationInstance instance)
 		{
 			if (!instance.Process.HasExited)
 				instance.Process.Kill();
 			instance.State = ApplicationState.Destroyed;
 			mApplicationStore.RemoveApplicationInstance(instance);
+		}
+
+		/// <summary>
+		/// If there are half-screen apps running on the screen, swaps them so that the application running on the 
+		/// left hand side of the screen runs on the right hand side of the screen and vice versa.
+		/// </summary>
+		public void Swap ()
+		{
+			ApplicationInstance left, right;
+			left = mApplicationStore.Instances
+				.Where(i => i.Layout == ApplicationLayout.LeftPanel && i.App.Type == ApplicationType.Application)
+				.FirstOrDefault();
+			right = mApplicationStore.Instances
+				.Where(i => i.Layout == ApplicationLayout.RightPanel && i.App.Type == ApplicationType.Application)
+				.FirstOrDefault();
+
+			if (left != null) left.Layout = ApplicationLayout.RightPanel;
+			if (right != null) right.Layout = ApplicationLayout.LeftPanel;
+
+			mWindowManager.SizeWindow(left);
+			mWindowManager.SizeWindow(right);
 		}
 	}
 }
