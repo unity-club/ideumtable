@@ -146,6 +146,9 @@ namespace CoffeeTable.Module.Applications
 					select app).FirstOrDefault();
 		}
 
+		public IEnumerable<ApplicationInstance> GetInstancesOfType(ApplicationType type)
+			=> mAppInstances.Where(i => i.App.Type == type);
+
 		public bool AddApplicationInstance (ApplicationInstance instance)
 		{
 			bool success = mAppInstances.Add(instance);

@@ -36,7 +36,7 @@ namespace CoffeeTable.Module.Applications
 				RelativeExecutablePath = manifest.ExecutablePath,
 				ExecutablePath = executablePath,
 				IconPath = iconPath,
-				LauncherName = manifest.LauncherName,
+				LauncherName = manifest.LauncherName?.ToLower()?.Trim(),
 				LaunchInFullscreen = manifest.LaunchInFullscreen
 			};
 		}

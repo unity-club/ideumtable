@@ -1,4 +1,5 @@
-﻿using CoffeeTable.Common.Manifests.Networking;
+﻿using CoffeeTable.Common.Manifests;
+using CoffeeTable.Common.Manifests.Networking;
 using CoffeeTable.Module.Applications;
 using CoffeeTable.Module.Messaging;
 using CoffeeTable.Module.Util;
@@ -6,9 +7,11 @@ using CoffeeTable.Module.Window;
 using Ideum;
 using Ideum.Networking.Application;
 using Ideum.Networking.Transport;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -19,6 +22,8 @@ namespace CoffeeTable.Module
 	[Module("coffeetable")]
 	public class CoffeeTableModule : ModuleBase, ITransportLayerReceiver, ITransportLayerDisconnectReceiver
 	{
+		private CoffeeTableManifest mCoffeeTableManifest;
+
 		private ApplicationStore mApplicationStore;
 		private ApplicationManager mAppManager;
 		private WindowManager mWindowManager;
@@ -27,6 +32,8 @@ namespace CoffeeTable.Module
 		protected override async void Initialize()
 		{
 			base.Initialize();
+
+			CacheServiceInformation();
 
 			mApplicationStore = new ApplicationStore();
 			mWindowManager = new WindowManager(mApplicationStore);
@@ -45,10 +52,38 @@ namespace CoffeeTable.Module
 			mApplicationStore.Dispose();
 		}
 
+		private void CacheServiceInformation ()
+		{
+			CoffeeTableManifest manifest;
+			string manPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CoffeeTable", "coffeetable.json");
+			if (!File.Exists(manPath)) manifest = new CoffeeTableManifest();
+			else
+			{
+				try { manifest = JsonConvert.DeserializeObject<CoffeeTableManifest>(File.ReadAllText(manPath)); }
+				catch (JsonException) { manifest = new CoffeeTableManifest(); }
+			}
+
+			manifest.ServiceHttpPort = Service.Manifest.HttpPort;
+			manifest.ServiceTcpPort = Service.Manifest.TcpPort;
+
+			File.WriteAllText(manPath, JsonConvert.SerializeObject(manifest, Formatting.Indented));
+
+			mCoffeeTableManifest = manifest;
+		}
+
 		public void Receive(TcpMessage message) => mMessageRouter.OnMessageReceived(message);
 		public void OnClientDisconnected(IClient client) => mMessageRouter.OnClientDisconnected(client);
 
 		#region Http
+
+		[Get("/")]
+		public void GetCoffeeTableManifest (Http http, ref IResponse response)
+		{
+			response = new GenericResponse<CoffeeTableManifest>
+			{
+				Result = mCoffeeTableManifest
+			};
+		}
 
 		[Get("apps")]
 		public void GetApplicationsManifest(Http http, ref IResponse response)
@@ -75,6 +110,14 @@ namespace CoffeeTable.Module
 			{
 				Result = mApplicationStore.Instances.Select(instance => instance.ToManifest()).ToArray()
 			};
+		}
+
+		[Post("swapwindows")]
+		public void SwapWindows (Http http, ref IResponse response)
+		{
+			response.Success = mAppManager.Swap();
+			if (!response.Success)
+				response.Description = "Could not swap windows because one or more of the windows that would have been swapped had not finished loading.";
 		}
 
 		#endregion

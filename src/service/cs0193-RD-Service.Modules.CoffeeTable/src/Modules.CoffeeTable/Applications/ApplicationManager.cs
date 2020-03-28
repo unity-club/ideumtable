@@ -178,7 +178,9 @@ namespace CoffeeTable.Module.Applications
 		/// If there are half-screen apps running on the screen, swaps them so that the application running on the 
 		/// left hand side of the screen runs on the right hand side of the screen and vice versa.
 		/// </summary>
-		public void Swap ()
+		/// <returns>A boolean indicating the success of the operation. If true, the application windows were successfully swapped.
+		/// If false, the application windows could not be swapped because one or more of them was not fully loaded yet. </returns>
+		public bool Swap ()
 		{
 			ApplicationInstance left, right;
 			left = mApplicationStore.Instances
@@ -188,11 +190,18 @@ namespace CoffeeTable.Module.Applications
 				.Where(i => i.Layout == ApplicationLayout.RightPanel && i.App.Type == ApplicationType.Application)
 				.FirstOrDefault();
 
+			if ((left != null && left.State != ApplicationState.Running) ||
+				(right != null && right.State != ApplicationState.Running))
+				return false; // Do not allow swapping if windows have not finished loading
+
+
 			if (left != null) left.Layout = ApplicationLayout.RightPanel;
 			if (right != null) right.Layout = ApplicationLayout.LeftPanel;
 
 			mWindowManager.SizeWindow(left);
 			mWindowManager.SizeWindow(right);
+
+			return true;
 		}
 	}
 }

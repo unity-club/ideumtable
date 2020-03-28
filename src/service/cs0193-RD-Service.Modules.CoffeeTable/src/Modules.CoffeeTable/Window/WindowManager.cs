@@ -47,13 +47,43 @@ namespace CoffeeTable.Module.Window
 		public void SizeWindow (ApplicationInstance instance)
 		{
 			if (instance == null) return;
-			ApplicationRect rect = GetApplicationRect(instance);
-			instance.WindowRect = rect;
-			NativeMethods.SetWindowCoords(instance.Process.MainWindowHandle,
-				(int)Math.Round(rect.MinX),
-				(int)Math.Round(rect.MinY),
-				(int)Math.Round(rect.Width),
-				(int)Math.Round(rect.Height));
+			if (instance.App.Type != ApplicationType.Homescreen) // Do not allow resizing homescreen
+			{
+				ApplicationRect rect = GetApplicationRect(instance);
+				instance.WindowRect = rect;
+				NativeMethods.SetWindowCoords(instance.Process.MainWindowHandle,
+					(int)Math.Round(rect.MinX),
+					(int)Math.Round(rect.MinY),
+					(int)Math.Round(rect.Width),
+					(int)Math.Round(rect.Height));
+			}
+
+			// Resize the homescreen accordingly
+			if (mApplicationStore.HomeScreen == null || mApplicationStore.HomeScreen.State != ApplicationState.Running) return;
+			float leftThreshold;
+			float rightThreshold;
+			IEnumerable<ApplicationInstance> appInstances = mApplicationStore.GetInstancesOfType(ApplicationType.Application);
+			if (appInstances.Any(i => i.Layout == ApplicationLayout.Fullscreen))
+			{
+				leftThreshold = mLeftSidebarThreshold;
+				rightThreshold = mLeftSidebarThreshold;
+			} else
+			{
+				leftThreshold = appInstances
+					.Where(i => i.Layout == ApplicationLayout.LeftPanel)
+					.FirstOrDefault()?
+					.WindowRect.MaxX ?? mLeftSidebarThreshold;
+				rightThreshold = appInstances
+					.Where(i => i.Layout == ApplicationLayout.RightPanel)
+					.FirstOrDefault()?
+					.WindowRect.MinX ?? mRightSidebarThreshold;
+			}
+
+			NativeMethods.SetWindowCoords(mApplicationStore.HomeScreen.Process.MainWindowHandle,
+				(int)leftThreshold,
+				0,
+				(int) (rightThreshold - leftThreshold),
+				ScreenHeight);
 		}
 
 		private ApplicationRect GetApplicationRect (ApplicationInstance instance)
