@@ -12,24 +12,16 @@ namespace CoffeeTable.Common.Manifests
 	public enum ApplicationState
 	{
 		/// <summary>
-		/// The <see cref="ApplicationInstance"/> object has been created but does not yet have an active process.
+		/// The application has begun to allocate resources for the running process, but either the application's process or main window has not yet opened.
 		/// </summary>
-		Uninitialized = 0,
+		Starting = 0,
 		/// <summary>
-		/// The <see cref="ApplicationInstance"/> object has been created and has a live process, but is still being opened by the service.
+		/// The application has an active process and main window, and is actively running.
 		/// </summary>
-		Starting = 1,
+		Running = 1,
 		/// <summary>
-		/// The <see cref="ApplicationInstance"/> object is currently running.
+		/// The application's process and window have formally been terminated.
 		/// </summary>
-		Running = 2,
-		/// <summary>
-		/// The <see cref="ApplicationInstance"/> is closing and its process will soon be terminated.
-		/// </summary>
-		Stopping = 3,
-		/// <summary>
-		/// The <see cref="ApplicationInstance"/> object is no longer running and its process has been terminated.
-		/// </summary>
-		Destroyed = 4
+		Destroyed = 2
 	}
 }

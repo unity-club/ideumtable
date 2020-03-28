@@ -6,12 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CoffeeTable.Common.Manifests;
+using CoffeeTable.Common.Manifests.Networking;
 using CoffeeTable.Module.Messaging;
 using CoffeeTable.Module.Window;
 
 namespace CoffeeTable.Module.Applications
 {
-	public class ApplicationInstance
+	public class ApplicationInstance : IManifestConvertible<ApplicationInstanceInfo>
 	{
 		public const uint ModuleId = 1;
 		public const uint LeftSidebarId = 2;
@@ -22,14 +23,14 @@ namespace CoffeeTable.Module.Applications
 
 		public uint Id { get; }
 		public Application App { get; }
-		public Process Process { get; }
+		public Process Process { get; set; }
 		public int ProcessId => Process?.Id ?? 0;
 		public ApplicationLayout Layout { get; set; }
 		public ConnectionStatus Connection { get; set; }
 		public ApplicationState State { get; set; }
 		public ApplicationRect WindowRect { get; set; }
 
-		public ApplicationInstance(Application app, Process process, ApplicationLayout layout)
+		public ApplicationInstance(Application app, ApplicationLayout layout)
 		{
 			switch (app.Type)
 			{
@@ -56,9 +57,7 @@ namespace CoffeeTable.Module.Applications
 					break;
 			}
 
-			Id = _id++;
 			App = app;
-			Process = process;
 			Layout = layout;
 		}
 
@@ -119,6 +118,19 @@ namespace CoffeeTable.Module.Applications
 				try { Process.Kill(); }
 				catch (SystemException) { }
 			});
+		}
+
+		public ApplicationInstanceInfo ToManifest()
+		{
+			return new ApplicationInstanceInfo
+			{
+				AppInfo = App.ToManifest(),
+				DestinationId = Id,
+				Layout = Layout,
+				Connection = Connection,
+				State = State,
+				Rect = WindowRect
+			};
 		}
 	}
 }

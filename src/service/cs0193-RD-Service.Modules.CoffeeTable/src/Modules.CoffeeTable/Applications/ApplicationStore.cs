@@ -1,4 +1,6 @@
 ﻿using CoffeeTable.Common.Manifests;
+using CoffeeTable.Common.Manifests.Networking;
+using CoffeeTable.Module.Messaging;
 using Ideum;
 using Newtonsoft.Json;
 using System;
@@ -11,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace CoffeeTable.Module.Applications
 {
-	public class ApplicationStore : IDisposable
+	public class ApplicationStore : IDisposable, IManifestConvertible<ApplicationsManifest>
 	{
 		private const string RootDirectoryName = "CoffeeTable";
 		private const string AppDirectoryName = "apps";
@@ -39,6 +41,7 @@ namespace CoffeeTable.Module.Applications
 			.Where(i => i.App.Type == ApplicationType.Sidebar);
 
 		public IEnumerable<ApplicationInstance> Instances => mAppInstances;
+		public IEnumerable<Application> Applications => mApplications;
 
 		public event Action<ApplicationInstance> OnApplicationInstanceCreated;
 		public event Action<ApplicationInstance> OnApplicationInstanceDestroyed;
@@ -179,6 +182,15 @@ namespace CoffeeTable.Module.Applications
 			}
 
 			mDisposed = true;
+		}
+
+		public ApplicationsManifest ToManifest()
+		{
+			return new ApplicationsManifest
+			{
+				InstalledApplications = mApplications.Select(app => app.ToManifest()).ToArray(),
+				RunningApplications = mAppInstances.Select(instance => instance.ToManifest()).ToArray()
+			};
 		}
 
 		~ApplicationStore()

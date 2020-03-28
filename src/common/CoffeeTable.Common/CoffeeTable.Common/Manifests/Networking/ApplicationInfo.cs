@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,6 +12,7 @@ namespace CoffeeTable.Common.Manifests.Networking
 	{
 		public uint AppId { get; set; }
 		public string Name { get; set; }
+		[JsonConverter(typeof(StringEnumConverter))]
 		public ApplicationType Type { get; set; }
 		public string Author { get; set; }
 		public string Description { get; set; }

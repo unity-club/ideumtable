@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,7 +22,9 @@ namespace CoffeeTable.Common.Manifests
 		public float MaxX { get; set; }
 		public float MaxY { get; set; }
 
+		[JsonIgnore]
 		public float Width => MaxX - MinX;
+		[JsonIgnore]
 		public float Height => MaxY - MinY;
 
 		public override bool Equals(object obj) => obj is ApplicationRect r && Equals(r);

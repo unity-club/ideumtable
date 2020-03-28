@@ -1,4 +1,6 @@
 ﻿using CoffeeTable.Common.Manifests;
+using CoffeeTable.Common.Manifests.Networking;
+using CoffeeTable.Module.Messaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace CoffeeTable.Module.Applications
 {
-	public class Application
+	public class Application : IManifestConvertible<ApplicationInfo>
 	{
 		private static uint _appId = 1;
 
@@ -40,5 +42,19 @@ namespace CoffeeTable.Module.Applications
 		}
 
 		private Application() => Id = _appId++;
+
+		public ApplicationInfo ToManifest()
+		{
+			return new ApplicationInfo
+			{
+				AppId = Id,
+				Name = Name,
+				Type = Type,
+				Author = Author,
+				Description = Description,
+				IconPath = IconPath,
+				LaunchInFullscreen = LaunchInFullscreen
+			};
+		}
 	}
 }

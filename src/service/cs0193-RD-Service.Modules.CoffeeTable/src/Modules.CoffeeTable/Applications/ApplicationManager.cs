@@ -35,7 +35,7 @@ namespace CoffeeTable.Module.Applications
 			mWindowManager = windowManager;
 
 			RegisterLaunchers();
-
+			
 			mApplicationStore.OnApplicationInstanceDestroyed += i => Log.Warn($"Application '{i.App.Name}' was destroyed.");
 		}
 
@@ -70,45 +70,56 @@ namespace CoffeeTable.Module.Applications
 
 			if (!IsLaunchableWithLayout(app, out ApplicationLayout appLayout)) return null;
 
-			ILauncher appLauncher;
-			if (!mLauncherMap.TryGetValue(app.LauncherName ?? string.Empty, out appLauncher)) appLauncher = mDefaultLauncher;
-			Process appProcess = appLauncher.LaunchApplication(app);
-			if (appProcess == null) return null;
-
-			ApplicationInstance instance = new ApplicationInstance(app, appProcess, appLayout);
-
-			// Get callback on process exitted
-			appProcess.EnableRaisingEvents = true;
-			appProcess.Exited += (o, e) => OnApplicationInstanceExitted(instance);
-			instance.State = ApplicationState.Starting;
-
+			ApplicationInstance instance = new ApplicationInstance(app, appLayout);
 			mApplicationStore.AddApplicationInstance(instance);
 
-			WaitForWindowOpen(instance);
+			LaunchApplicationAsync(instance);
 
 			return instance;
 		}
 
-		private async void WaitForWindowOpen (ApplicationInstance instance)
+		private async void LaunchApplicationAsync (ApplicationInstance instance)
 		{
 			//
-			// Begin loading animation(s) here
+			// TODO: Begin loading animation(s) here.
 			//
 
-			if (!await mWindowManager.OpenWindow(instance).ConfigureAwait(false))
+			instance.State = ApplicationState.Starting;
+			await Task.Run(async () =>
 			{
-				// App instance's window did not open properly, so let's ensure that
-				// the process is killed.
-				if (!instance.Process.HasExited)
-					try { instance.Process.Kill(); }
-					catch (Win32Exception) {}
-			}
+				ILauncher appLauncher;
+				if (!mLauncherMap.TryGetValue(instance.App.LauncherName ?? string.Empty, out appLauncher)) appLauncher = mDefaultLauncher;
+				instance.Process = appLauncher.LaunchApplication(instance.App);
+				if (instance.Process == null)
+				{
+					// Failed to launch app process, so early exit.
+					OnApplicationInstanceExitted(instance);
+					return;
+				}
 
-			//
-			// End loading animation(s) here 
-			//
+				// Get callback on process exitted
+				instance.Process.EnableRaisingEvents = true;
+				instance.Process.Exited += (o, e) => OnApplicationInstanceExitted(instance);
 
-			instance.State = ApplicationState.Running;
+				if (!await mWindowManager.OpenWindow(instance).ConfigureAwait(false))
+				{
+					// App instance's window did not open properly, so let's ensure that
+					// the process is killed.
+					if (!instance.Process.HasExited)
+						try { instance.Process.Kill(); }
+						catch (Win32Exception) { }
+
+					//
+					// TODO: Also end loading animation(s) here 
+					//
+				}
+
+				//
+				// TODO: End loading animation(s) here 
+				//
+
+				instance.State = ApplicationState.Running;
+			}).ConfigureAwait(false);
 		}
 
 		// Returns true if the given application can be launched, and false if it cannot.
@@ -157,7 +168,7 @@ namespace CoffeeTable.Module.Applications
 		// and its window closed
 		private void OnApplicationInstanceExitted (ApplicationInstance instance)
 		{
-			if (!instance.Process.HasExited)
+			if (instance.Process != null && !instance.Process.HasExited)
 				instance.Process.Kill();
 			instance.State = ApplicationState.Destroyed;
 			mApplicationStore.RemoveApplicationInstance(instance);
