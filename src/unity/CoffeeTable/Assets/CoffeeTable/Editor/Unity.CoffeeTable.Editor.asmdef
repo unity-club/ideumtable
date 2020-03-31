@@ -1,0 +1,17 @@
+{
+    "name": "Unity.CoffeeTable.Editor",
+    "references": [
+        "GUID:e7820c175fddc35499c586f6776a408a"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

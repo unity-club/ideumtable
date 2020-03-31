@@ -4,9 +4,6 @@
 [submodule "src/service/cs0193-RD-Service.Modules.System"]
 	path = src/service/cs0193-RD-Service.Modules.System
 	url = git@ideum.github.com:ideum/cs0193-RD-Service.Modules.System.git
-[submodule "src/service/cs0193-RD-Service-IoT-Hub"]
-	path = src/service/cs0193-RD-Service-IoT-Hub
-	url = git@ideum.github.com:ideum/cs0193-RD-Service-IoT-Hub.git
 [submodule "src/service/cs0193-RD-Service.Modules.TangibleEngine"]
 	path = src/service/cs0193-RD-Service.Modules.TangibleEngine
 	url = git@ideum.github.com:ideum/cs0193-RD-Service.Modules.TangibleEngine.git

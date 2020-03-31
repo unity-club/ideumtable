@@ -53,8 +53,8 @@ namespace CoffeeTable.Common.Messaging.Handling
 			return exchange;
 		}
 
-		public Exchange<Null> Send(uint destinationId, string requestName, object data = null)
-			=> Send<Null>(destinationId, requestName, data);
+		public Exchange<None> Send(uint destinationId, string requestName, object data = null)
+			=> Send<None>(destinationId, requestName, data);
 
 		public void Receive(Message message)
 		{
@@ -105,7 +105,7 @@ namespace CoffeeTable.Common.Messaging.Handling
 					// Deserializing JSON
 					// If we failed to deserialize JSON, we fail to receive the response to this exchange
 					object data = null;
-					if (!exchangeDataType.Equals(Null.NullType))
+					if (!exchangeDataType.Equals(None.NoneType))
 					{
 						try {
 							if (string.IsNullOrWhiteSpace(message.Data)) data = null;
@@ -131,7 +131,7 @@ namespace CoffeeTable.Common.Messaging.Handling
 			else
 			{
 				// This message is (supposedly) a request
-				if (mRequestHandlersMap.TryGetValue(message.Request.ToLower(), out List<RequestHandlerInfo> list))
+				if (mRequestHandlersMap.TryGetValue(message.Request?.ToLower(), out List<RequestHandlerInfo> list))
 				{
 					for (int i = 0; i < list.Count(); i++)
 					{
@@ -140,7 +140,7 @@ namespace CoffeeTable.Common.Messaging.Handling
 						// Does this request really need deserialized data? If so, let's get it.
 						// Once again, if we fail to deserialize, we fail to receive
 						object requestData = null;
-						if (!requestHandlerInfo.RequestType.Equals(Null.NullType))
+						if (!requestHandlerInfo.RequestType.Equals(None.NoneType))
 						{
 							try {
 								if (string.IsNullOrWhiteSpace(message.Data)) requestData = null;
@@ -170,7 +170,7 @@ namespace CoffeeTable.Common.Messaging.Handling
 
 						// Get the data after calling delegate
 						object responseData = null;
-						if (!requestHandlerInfo.ResponseType.Equals(Null.NullType))
+						if (!requestHandlerInfo.ResponseType.Equals(None.NoneType))
 							responseData = response.Property_Data.GetValue(response);
 
 						Message responseMessage = new Message()
@@ -249,7 +249,7 @@ namespace CoffeeTable.Common.Messaging.Handling
 				ThrowInvalidMethodSignatureException(method, $"has an invalid method signature. " +
 					$"The first parameter must be a {nameof(Request)}, whose generic type represents the type of data this request will receive. " +
 					$"The second parameter must be a {nameof(Response)}, whose generic type represents the type of data this request will respond with. " +
-					$"Either type parameter can be the {nameof(Null)} type if the request handler should not receive or respond, respectively, with any data.");
+					$"Either type parameter can be the {nameof(None)} type if the request handler should not receive or respond, respectively, with any data.");
 			if (!method.ReturnType.Equals(typeof(void)))
 				ThrowInvalidMethodSignatureException(method, "has an invalid method signature. Request handlers should not return anything and should have a void return type.");
 

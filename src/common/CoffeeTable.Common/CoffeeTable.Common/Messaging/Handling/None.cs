@@ -4,15 +4,15 @@ using System.Text;
 
 namespace CoffeeTable.Common.Messaging.Handling
 {
-	public sealed class Null
+	public sealed class None
 	{
-		internal static readonly Type NullType = typeof(Null);
+		internal static readonly Type NoneType = typeof(None);
 
-		private Null() { }
+		private None() { }
 
 		public override bool Equals(object obj)
 		{
-			return obj == null || obj.GetType().Equals(NullType);
+			return obj == null || obj.GetType().Equals(NoneType);
 		}
 
 		public override int GetHashCode()

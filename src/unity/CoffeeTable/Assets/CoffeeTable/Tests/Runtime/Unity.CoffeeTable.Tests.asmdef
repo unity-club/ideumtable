@@ -1,0 +1,15 @@
+{
+    "name": "Unity.CoffeeTable.Tests",
+    "references": [
+        "GUID:e7820c175fddc35499c586f6776a408a"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

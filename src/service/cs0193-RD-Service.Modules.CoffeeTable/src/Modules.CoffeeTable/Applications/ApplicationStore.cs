@@ -40,11 +40,24 @@ namespace CoffeeTable.Module.Applications
 		public IEnumerable<ApplicationInstance> Sidebars => mAppInstances
 			.Where(i => i.App.Type == ApplicationType.Sidebar);
 
+		public ApplicationInstance LeftPanelApp => mAppInstances
+			.Where(i => i.App.Type == ApplicationType.Application && i.Layout == ApplicationLayout.LeftPanel)
+			.FirstOrDefault();
+
+		public ApplicationInstance RightPanelApp => mAppInstances
+			.Where(i => i.App.Type == ApplicationType.Application && i.Layout == ApplicationLayout.RightPanel)
+			.FirstOrDefault();
+
+		public ApplicationInstance FullscreenApp => mAppInstances
+			.Where(i => i.App.Type == ApplicationType.Application && i.Layout == ApplicationLayout.Fullscreen)
+			.FirstOrDefault();
+
 		public IEnumerable<ApplicationInstance> Instances => mAppInstances;
 		public IEnumerable<Application> Applications => mApplications;
 
 		public event Action<ApplicationInstance> OnApplicationInstanceCreated;
 		public event Action<ApplicationInstance> OnApplicationInstanceDestroyed;
+		public event Action<ApplicationStore> OnNotifyApplicationsChanged;
 
 		private ILog Log = LogManager.GetLogger(typeof(ApplicationManager));
 
@@ -52,6 +65,8 @@ namespace CoffeeTable.Module.Applications
 		{
 			RegisterApplications();
 		}
+
+		public void NotifyApplicationsChanged() => OnNotifyApplicationsChanged?.Invoke(this);
 
 		private void RegisterApplications()
 		{
@@ -149,17 +164,31 @@ namespace CoffeeTable.Module.Applications
 		public IEnumerable<ApplicationInstance> GetInstancesOfType(ApplicationType type)
 			=> mAppInstances.Where(i => i.App.Type == type);
 
+		public ApplicationInstance GetFromId(uint destinationId)
+			=> mAppInstances.Where(i => i.Id == destinationId)
+			.FirstOrDefault();
+
 		public bool AddApplicationInstance (ApplicationInstance instance)
 		{
+			if (instance == null) return false;
 			bool success = mAppInstances.Add(instance);
-			if (success) OnApplicationInstanceCreated?.Invoke(instance);
+			if (success)
+			{
+				OnApplicationInstanceCreated?.Invoke(instance);
+				NotifyApplicationsChanged();
+			}
 			return success;
 		}
 
 		public bool RemoveApplicationInstance (ApplicationInstance instance)
 		{
+			if (instance == null) return false;
 			bool success = mAppInstances.Remove(instance);
-			if (success) OnApplicationInstanceDestroyed?.Invoke(instance);
+			if (success)
+			{
+				OnApplicationInstanceDestroyed?.Invoke(instance);
+				NotifyApplicationsChanged();
+			}
 			return success;
 		}
 

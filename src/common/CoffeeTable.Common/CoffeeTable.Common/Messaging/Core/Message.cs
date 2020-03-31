@@ -38,5 +38,11 @@ namespace CoffeeTable.Common.Messaging.Core
 			Sent = DateTime.Now;
 			Id = _id++;
 		}
+
+		[JsonConstructor]
+		private Message (uint id)
+		{
+			Id = id;
+		}
 	}
 }

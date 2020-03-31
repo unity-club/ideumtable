@@ -8,7 +8,7 @@ namespace CoffeeTable.Common.Messaging.Handling
 	public abstract class Response
 	{
 		internal static readonly Type GenericType = typeof(Response<>);
-		internal PropertyInfo Property_Data => GetType().GetProperty(nameof(Response<Null>.Data));
+		internal PropertyInfo Property_Data => GetType().GetProperty(nameof(Response<None>.Data));
 
 		public bool Success { get; set; } = true;
 		public string Details { get; set; }

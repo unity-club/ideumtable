@@ -29,6 +29,7 @@ namespace CoffeeTable.Module.Applications
 		public ConnectionStatus Connection { get; set; }
 		public ApplicationState State { get; set; }
 		public ApplicationRect WindowRect { get; set; }
+		public bool IsSimulator { get; set; }
 
 		public ApplicationInstance(Application app, ApplicationLayout layout)
 		{
@@ -69,6 +70,7 @@ namespace CoffeeTable.Module.Applications
 		/// If true, the window successfully opened. If false, the window failed to open or failed to do so within the alotted time span.</returns>
 		public Task<bool> OpenWindowAsync (TimeSpan timeout)
 		{
+			if (IsSimulator) return Task.FromResult(true);
 			if (Process == null) return Task.FromResult(false);
 			if (Process.HasExited) return Task.FromResult(false);
 
@@ -95,6 +97,7 @@ namespace CoffeeTable.Module.Applications
 		/// <param name="timeout">The maximum amount of time this function should wait for the process to close.</param>
 		public Task TerminateProcessAsync (TimeSpan timeout)
 		{
+			if (IsSimulator) return Task.CompletedTask;
 			if (Process == null) return Task.CompletedTask;
 			if (Process.HasExited) return Task.CompletedTask;
 
@@ -129,7 +132,8 @@ namespace CoffeeTable.Module.Applications
 				Layout = Layout,
 				Connection = Connection,
 				State = State,
-				Rect = WindowRect
+				Rect = WindowRect,
+				IsSimulator = IsSimulator
 			};
 		}
 	}

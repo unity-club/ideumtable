@@ -43,7 +43,14 @@ namespace CoffeeTable.Module
 			// Ensures that all running applications are closed when the console is closed
 			ConsoleShutdownHandler.OnShutdown += mApplicationStore.Dispose;
 
-			var inst1 = mAppManager.LaunchApplication(mApplicationStore.GetApplication("RollABall"));
+			//new Action(async () =>
+			//{
+			//	await Task.Delay(16000).ConfigureAwait(false);
+			//	var inst1 = mAppManager.LaunchApplication(mApplicationStore.GetApplication("RollABall"));
+			//}).Invoke();
+
+			
+
 		}
 
 		protected override void Deinitialize()
@@ -110,14 +117,6 @@ namespace CoffeeTable.Module
 			{
 				Result = mApplicationStore.Instances.Select(instance => instance.ToManifest()).ToArray()
 			};
-		}
-
-		[Post("swapwindows")]
-		public void SwapWindows (Http http, ref IResponse response)
-		{
-			response.Success = mAppManager.Swap();
-			if (!response.Success)
-				response.Description = "Could not swap windows because one or more of the windows that would have been swapped had not finished loading.";
 		}
 
 		#endregion

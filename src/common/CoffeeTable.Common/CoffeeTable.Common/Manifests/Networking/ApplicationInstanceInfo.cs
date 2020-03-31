@@ -18,5 +18,6 @@ namespace CoffeeTable.Common.Manifests.Networking
 		[JsonConverter(typeof(StringEnumConverter))]
 		public ApplicationState State { get; set; }
 		public ApplicationRect Rect { get; set; }
+		public bool IsSimulator { get; set; }
 	}
 }

@@ -47,6 +47,7 @@ namespace CoffeeTable.Module.Window
 		public void SizeWindow (ApplicationInstance instance)
 		{
 			if (instance == null) return;
+			if (instance.IsSimulator) return; // Do not try to resize simulated applications
 			if (instance.App.Type != ApplicationType.Homescreen) // Do not allow resizing homescreen
 			{
 				ApplicationRect rect = GetApplicationRect(instance);
@@ -59,7 +60,9 @@ namespace CoffeeTable.Module.Window
 			}
 
 			// Resize the homescreen accordingly
-			if (mApplicationStore.HomeScreen == null || mApplicationStore.HomeScreen.State != ApplicationState.Running) return;
+			if (mApplicationStore.HomeScreen == null 
+				|| mApplicationStore.HomeScreen.State != ApplicationState.Running
+				|| mApplicationStore.HomeScreen.IsSimulator) return;
 			float leftThreshold;
 			float rightThreshold;
 			IEnumerable<ApplicationInstance> appInstances = mApplicationStore.GetInstancesOfType(ApplicationType.Application);
@@ -67,8 +70,7 @@ namespace CoffeeTable.Module.Window
 			{
 				leftThreshold = mLeftSidebarThreshold;
 				rightThreshold = mLeftSidebarThreshold;
-			} else
-			{
+			} else {
 				leftThreshold = appInstances
 					.Where(i => i.Layout == ApplicationLayout.LeftPanel)
 					.FirstOrDefault()?

@@ -8,7 +8,7 @@ namespace CoffeeTable.Common.Messaging.Handling
 	public abstract class Request
 	{
 		internal static readonly Type GenericType = typeof(Request<>);
-		internal PropertyInfo Property_Data => GetType().GetProperty(nameof(Request<Null>.Data));
+		internal PropertyInfo Property_Data => GetType().GetProperty(nameof(Request<None>.Data));
 
 		public string SenderName { get; internal set; }
 		public uint SenderId { get; internal set; }

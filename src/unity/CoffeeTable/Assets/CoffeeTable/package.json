@@ -1,0 +1,7 @@
+{
+  "name": "com.unityclub.coffeetable",
+  "version": "0.1.0",
+  "displayName": "Coffee Table",
+  "description": "The Unity bindings to interface with the Albuquerque Academy's Ideum Coffee Table",
+  "unity": "2019.1"
+}

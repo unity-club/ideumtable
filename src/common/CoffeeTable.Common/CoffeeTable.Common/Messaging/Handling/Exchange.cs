@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -11,7 +12,7 @@ namespace CoffeeTable.Common.Messaging.Handling
 	public abstract class Exchange 
 	{
 		internal static readonly Type GenericType = typeof(Exchange<>);
-		internal PropertyInfo Property_Data => GetType().GetProperty(nameof(Exchange<Null>.Data));
+		internal PropertyInfo Property_Data => GetType().GetProperty(nameof(Exchange<None>.Data));
 
 		public bool Complete { get; internal set; }
 		public bool Success { get; internal set; }
@@ -21,6 +22,7 @@ namespace CoffeeTable.Common.Messaging.Handling
 		public DateTime Requested { get; internal set; }
 		public DateTime? Completed { get; internal set; }
 		internal uint CorrelationId { get; set; }
+		public uint Id => CorrelationId;
 
 		public int Delay
 		{

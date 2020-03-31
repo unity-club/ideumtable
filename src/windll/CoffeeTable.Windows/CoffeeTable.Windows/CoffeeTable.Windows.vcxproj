@@ -154,7 +154,7 @@
       <EnableUAC>false</EnableUAC>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(OutDir)CoffeeTable.Windows.dll" "$(ProjectDir)..\..\..\service\cs0193-RD-Service.Modules.CoffeeTable\src\Modules.CoffeeTable\dll\" /Y</Command>
+      <Command>xcopy "$(OutDir)CoffeeTable.Windows.dll" "$(ProjectDir)..\..\..\service\cs0193-RD-Service.Modules.CoffeeTable\src\Modules.CoffeeTable\DLL\" /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

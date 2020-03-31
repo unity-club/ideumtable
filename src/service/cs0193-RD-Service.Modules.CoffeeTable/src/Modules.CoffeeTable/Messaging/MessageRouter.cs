@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CoffeeTable.Common.Manifests;
 using CoffeeTable.Common.Messaging.Core;
 using CoffeeTable.Common.Messaging.Handling;
+using CoffeeTable.Common.Messaging.Requests;
 using CoffeeTable.Module.Applications;
 using Ideum;
 using Ideum.Networking.Transport;
@@ -19,11 +20,13 @@ namespace CoffeeTable.Module.Messaging
 		private const string ModuleName = "CoffeeTable";
 
 		public IMessagingHandler Handler { get; private set; }
+		public Func<Application, ApplicationInstance> CreateSimulatorInstance { get; set; }
 
 		private Action<uint, TcpMessage> mServiceSender;
 		private ApplicationStore mApplicationStore;
 
-		public MessageRouter (ApplicationStore appStore, Action<uint, TcpMessage> serviceSender)
+		public MessageRouter (ApplicationStore appStore,
+			Action<uint, TcpMessage> serviceSender)
 		{
 			mApplicationStore = appStore;
 			mServiceSender = serviceSender;
@@ -55,22 +58,30 @@ namespace CoffeeTable.Module.Messaging
 				// with the service.
 				if (SubscriptionKeyword.Equals(message.Request, StringComparison.OrdinalIgnoreCase))
 				{
-					int pid;
-					try { pid = JsonConvert.DeserializeObject<int>(message.Data); }
+					ServiceSubscriptionRequest subscriptionRequest;
+					try { subscriptionRequest = JsonConvert.DeserializeObject<ServiceSubscriptionRequest>(message.Data); }
 					catch (JsonException) { return; }
 
 					Message response = new Message()
 					{
-						Data = null,
-						CorrelationId = message.Id
+						CorrelationId = message.Id,
+						SenderId = ApplicationInstance.ModuleId,
+						SenderName = ModuleName
 					};
 
-					if (SubscribeClient(pid, raw.ClientId)) response.Success = true;
+					if (SubscribeClient(out ApplicationInstance subscriber, subscriptionRequest, raw.ClientId))
+					{
+						response.Success = true;
+						response.Data = JsonConvert.SerializeObject(new ServiceSubscriptionResponse
+						{
+							AppsManifest = mApplicationStore.ToManifest(),
+							SubscriberId = subscriber.Id
+						});
+					}
 					else response.Success = false;
 
 					SendMessage(response, raw.ClientId);
-				} else
-				{
+				} else {
 					// This client has not subscribed to the service, and is trying to send a request.
 					// Send a message saying that it cannot do this.
 					Message response = new Message()
@@ -78,7 +89,9 @@ namespace CoffeeTable.Module.Messaging
 						Data = null,
 						CorrelationId = message.Id,
 						Success = false,
-						Details = $"Cannot perform request '{message.Request}' because the client is not subscribed to the service."
+						Details = $"Cannot perform request '{message.Request}' because the client is not subscribed to the service.",
+						SenderId = ApplicationInstance.ModuleId,
+						SenderName = ModuleName
 					};
 
 					SendMessage(response, raw.ClientId);
@@ -89,14 +102,25 @@ namespace CoffeeTable.Module.Messaging
 		public void OnClientDisconnected (IClient client)
 		{
 			var connected = mApplicationStore.Instances
-				.Where(i => i.Connection.IsClientConnected && i.Connection.ServiceClientId == client.Id);
+				.Where(i => i.Connection.IsClientConnected && i.Connection.ServiceClientId == client.Id).ToList();
+
+			if (!connected.Any()) return;
 
 			foreach (var instance in connected)
+			{
 				instance.Connection = new ConnectionStatus
 				{
 					IsClientConnected = false,
 					ServiceClientId = 0
 				};
+				if (instance.IsSimulator)
+				{
+					instance.State = ApplicationState.Destroyed;
+					mApplicationStore.RemoveApplicationInstance(instance);
+				}
+			}
+
+			mApplicationStore.NotifyApplicationsChanged();
 		}
 
 		// Routes a message received externally from an application instance
@@ -117,16 +141,28 @@ namespace CoffeeTable.Module.Messaging
 		}
 
 		// Subscribes and connects and application with the given processId and clientId
-		private bool SubscribeClient (int processId, uint clientId)
+		private bool SubscribeClient (out ApplicationInstance subscriber, ServiceSubscriptionRequest request, uint clientId)
 		{
-			ApplicationInstance instance = mApplicationStore.Instances
-				.Where(i => i.ProcessId == processId).FirstOrDefault();
+			ApplicationInstance instance;
+			if (request.IsSimulator) instance = CreateSimulatorInstance?
+					.Invoke(Application.CreateFromManifest(request.SimulatedApplication, string.Empty, string.Empty));
+			else instance = mApplicationStore.Instances
+					.Where(i => i.ProcessId == request.ProcessId).FirstOrDefault();
+
+			subscriber = instance;
 			if (instance == null) return false;
+
 			instance.Connection = new ConnectionStatus
 			{
 				IsClientConnected = true,
 				ServiceClientId = clientId
 			};
+
+			// If this was a request to create a simulator instance, then calling AddApplicationInstance will notify subscribed clients of the change
+			// If this was a request to create a real application instance, then we must manually notify subscribed clients of the change
+			if (request.IsSimulator) mApplicationStore.AddApplicationInstance(instance);
+			else mApplicationStore.NotifyApplicationsChanged();
+
 			return true;
 		}
 
