@@ -68,6 +68,7 @@ namespace CoffeeTable.Providers
 		private void ConnectionClosed(ConnectionManager c)
 		{
 			Log.Out("Service connection was closed.");
+			OnDisconnected();
 		}
 
 		public void Send(Message message)

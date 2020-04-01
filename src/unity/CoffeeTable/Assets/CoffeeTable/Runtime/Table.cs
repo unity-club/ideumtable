@@ -26,6 +26,26 @@ namespace CoffeeTable
 {
 	public sealed class Table : MonoBehaviour
 	{
+		private OnTableConnectedPublisher mOnTableConnectedPublisher = new OnTableConnectedPublisher();
+		private event Action mOnTableConnectedEvent;
+		public static event Action OnTableConnected
+		{
+			add
+			{
+				Instance.mOnTableConnectedEvent += value;
+				if (Instance.mOnline) value?.Invoke();
+			}
+			remove { Instance.mOnTableConnectedEvent -= value; }
+		}
+
+		private OnTableDisconnectedPublisher mOnTableDisconnectedPublisher = new OnTableDisconnectedPublisher();
+		private event Action mOnTableDisconnectedEvent;
+		public static event Action OnTableDisconnected
+		{
+			add { Instance.mOnTableDisconnectedEvent += value; }
+			remove { Instance.mOnTableDisconnectedEvent -= value; }
+		}
+
 		private OnApplicationCreatedPublisher mOnApplicationCreatedPublisher = new OnApplicationCreatedPublisher();
 		private event Action<ApplicationInstanceInfo> mOnApplicationCreatedEvent;
 		public static event Action<ApplicationInstanceInfo> OnApplicationCreated
@@ -64,6 +84,13 @@ namespace CoffeeTable
 					.RunningApplications.Where(i => i.DestinationId == Instance.mApplicationId)
 					.FirstOrDefault();
 			}
+		}
+
+		private bool mReceiveUpdatesSelf;
+		public static bool ReceiveUpdatesSelf
+		{
+			get => Instance.mReceiveUpdatesSelf;
+			set => Instance.mReceiveUpdatesSelf = value;
 		}
 
 		private List<Message> mMessageBuffer = new List<Message>();
@@ -118,6 +145,11 @@ namespace CoffeeTable
 			i.mOnApplicationCreatedPublisher.Subscribe(o as IOnApplicationCreated);
 			i.mOnApplicationUpdatedPublisher.Subscribe(o as IOnApplicationUpdated);
 			i.mOnApplicationDestroyedPublisher.Subscribe(o as IOnApplicationDestroyed);
+			i.mOnTableConnectedPublisher.Subscribe(o as IOnTableConnected);
+			i.mOnTableDisconnectedPublisher.Subscribe(o as IOnTableDisconnected);
+
+			if (o is IOnTableConnected onTableConnectedSubscriber && i.mOnline)
+				onTableConnectedSubscriber.OnTableConnected();
 		}
 
 		public static void Unsubscribe(object o)
@@ -126,6 +158,8 @@ namespace CoffeeTable
 			i.mOnApplicationCreatedPublisher.Unsubscribe(o as IOnApplicationCreated);
 			i.mOnApplicationUpdatedPublisher.Unsubscribe(o as IOnApplicationUpdated);
 			i.mOnApplicationDestroyedPublisher.Unsubscribe(o as IOnApplicationDestroyed);
+			i.mOnTableConnectedPublisher.Unsubscribe(o as IOnTableConnected);
+			i.mOnTableDisconnectedPublisher.Unsubscribe(o as IOnTableDisconnected);
 		}
 
 		#endregion
@@ -159,11 +193,19 @@ namespace CoffeeTable
 
 		private void Deinitialize()
 		{
+			if (!mOnline) return;
 			mOnline = false;
 			var provider = mProviderService;
 			mProviderService = null;
 			provider?.Dispose();
 			Messaging = null;
+
+			// Publish on disconnected events
+			Dispatcher.Dispatch(() =>
+			{
+				mOnTableDisconnectedEvent?.Invoke();
+				mOnTableDisconnectedPublisher.Publish();
+			});
 		}
 
 		private bool EstablishConnection ()
@@ -241,6 +283,14 @@ namespace CoffeeTable
 
 			Log.Out("Successfully subscribed to service.");
 			mOnline = true;
+
+			// Publish on connected events
+			Dispatcher.Dispatch(() =>
+			{
+				mOnTableConnectedEvent?.Invoke();
+				mOnTableConnectedPublisher.Publish();
+			});
+
 			return true;
 		}
 
@@ -306,6 +356,8 @@ namespace CoffeeTable
 
 		private void Awake()
 		{
+			mReceiveUpdatesSelf = AppSettings.ReceiveUpdatesSelf;
+
 			EnsureSingleton();
 			Dispatcher = GetDispatcher();
 			Initialize();
@@ -398,26 +450,29 @@ namespace CoffeeTable
 				(a, b) => ApplicationInstanceInfo.IdComparer.Equals(a, b),
 				(oldElement, newElement) => !ApplicationInstanceInfo.Equals(oldElement, newElement));
 
+			mAppManifest.RunningApplications = updatedInstances;
+
 			foreach (var createdApp in created)
 			{
-				if (createdApp.IsSelf() && !AppSettings.ReceiveUpdatesSelf) continue;
+				if (createdApp.IsSelf() && !mReceiveUpdatesSelf) continue;
 				mOnApplicationCreatedEvent?.Invoke(createdApp);
 				mOnApplicationCreatedPublisher.Publish(createdApp);
 			}
 
 			foreach (var updatedApp in updated)
 			{
-				if (updatedApp.New.IsSelf() && !AppSettings.ReceiveUpdatesSelf) continue;
+				if (updatedApp.New.IsSelf() && !mReceiveUpdatesSelf) continue;
 				mOnApplicationUpdatedEvent?.Invoke(updatedApp);
 				mOnApplicationUpdatedPublisher.Publish(updatedApp);
 			}
 
 			foreach (var destroyedApp in destroyed)
 			{
-				if (destroyedApp.IsSelf() && !AppSettings.ReceiveUpdatesSelf) continue;
+				if (destroyedApp.IsSelf() && !mReceiveUpdatesSelf) continue;
 				mOnApplicationDestroyedEvent?.Invoke(destroyedApp);
 				mOnApplicationDestroyedPublisher.Publish(destroyedApp);
 			}
+
 		}
 	}
 }

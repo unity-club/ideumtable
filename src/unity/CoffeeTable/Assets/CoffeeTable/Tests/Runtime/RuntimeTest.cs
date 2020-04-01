@@ -11,17 +11,18 @@ using CoffeeTable.Common.Manifests.Networking;
 using CoffeeTable.Common.Manifests;
 using CoffeeTable.Publishers;
 
-public class RuntimeTest : MonoBehaviour
+public class RuntimeTest : MonoBehaviour, IOnApplicationCreated, IOnApplicationUpdated, IOnTableDisconnected, IOnTableConnected
 {
 	// Start is called before the first frame update
 	async void Start()
 	{
-		//Debug.Log($"CoffeeTable is online: {Table.IsOnline}");
-		//Table.Quit();
+		Table.Subscribe(this);
+		//Table.ReceiveUpdatesSelf = false;
+		//await Table.SetFullscreenAsync(true);
 		;
-
 	}
 
+	#region ModifiedTest
 	private void ModifiedTest()
 	{
 		ApplicationInstanceInfo[] oldApps = new[]
@@ -111,10 +112,31 @@ public class RuntimeTest : MonoBehaviour
 		var i = modified;
 		;
 	}
+	#endregion
 
 	// Update is called once per frame
 	void Update()
 	{
 
+	}
+
+	public void OnApplicationUpdated((ApplicationInstanceInfo Old, ApplicationInstanceInfo New) delta)
+	{
+		;
+	}
+
+	public void OnApplicationCreated(ApplicationInstanceInfo instance)
+	{
+		;
+	}
+
+	public void OnTableDisconnected()
+	{
+		;
+	}
+
+	public void OnTableConnected()
+	{
+		;
 	}
 }

@@ -297,6 +297,8 @@ namespace CoffeeTable.Module.Applications
 
 			mWindowManager.SizeWindow(instance);
 
+			mApplicationStore.NotifyApplicationsChanged();
+
 			response.Success = true;
 		}
 
