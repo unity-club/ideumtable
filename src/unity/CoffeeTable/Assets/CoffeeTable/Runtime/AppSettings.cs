@@ -62,7 +62,11 @@ namespace CoffeeTable
 
 		[SerializeField]
 		internal bool mIsApiEnabled = true;
-		public static bool IsApiEnabled => Instance.mIsApiEnabled; 
+		public static bool IsApiEnabled => Instance.mIsApiEnabled;
+
+		[SerializeField]
+		internal bool mReceiveUpdatesSelf = true;
+		public static bool ReceiveUpdatesSelf => Instance.mReceiveUpdatesSelf;
 
 		public static ApplicationManifest GetManifest ()
 		{

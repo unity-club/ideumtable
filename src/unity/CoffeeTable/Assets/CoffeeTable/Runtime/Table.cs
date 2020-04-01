@@ -26,15 +26,30 @@ namespace CoffeeTable
 {
 	public sealed class Table : MonoBehaviour
 	{
-		private OnApplicationsUpdatedPublisher mOnApplicationsUpdatedPublisher = new OnApplicationsUpdatedPublisher();
-		private event Action<ApplicationsManifest> mOnApplicationsUpdated;
-		public static event Action<ApplicationsManifest> OnApplicationsUpdated
+		private OnApplicationCreatedPublisher mOnApplicationCreatedPublisher = new OnApplicationCreatedPublisher();
+		private event Action<ApplicationInstanceInfo> mOnApplicationCreatedEvent;
+		public static event Action<ApplicationInstanceInfo> OnApplicationCreated
 		{
-			add { Instance.mOnApplicationsUpdated += value; }
-			remove { Instance.mOnApplicationsUpdated -= value; }
+			add { Instance.mOnApplicationCreatedEvent += value; }
+			remove { Instance.mOnApplicationCreatedEvent -= value; }
 		}
 
-		private bool mServiceConnected => mProviderService?.IsConnected ?? false;
+		private OnApplicationUpdatedPublisher mOnApplicationUpdatedPublisher = new OnApplicationUpdatedPublisher();
+		private event Action<(ApplicationInstanceInfo Old, ApplicationInstanceInfo New)> mOnApplicationUpdatedEvent;
+		public static event Action<(ApplicationInstanceInfo Old, ApplicationInstanceInfo New)> OnApplicationUpdated
+		{
+			add { Instance.mOnApplicationUpdatedEvent += value; }
+			remove { Instance.mOnApplicationUpdatedEvent -= value; }
+		}
+
+		private OnApplicationDestroyedPublisher mOnApplicationDestroyedPublisher = new OnApplicationDestroyedPublisher();
+		private event Action<ApplicationInstanceInfo> mOnApplicationDestroyedEvent;
+		public static event Action<ApplicationInstanceInfo> OnApplicationDestroyed
+		{
+			add { Instance.mOnApplicationDestroyedEvent += value; }
+			remove { Instance.mOnApplicationDestroyedEvent -= value; }
+		}
+
 		private bool mOnline;
 		public static bool IsOnline => Instance.mOnline;
 
@@ -60,6 +75,7 @@ namespace CoffeeTable
 		private uint mApplicationId = 0;
 
 		public IMessagingHandler Messaging { get; private set; }
+		public Dispatcher Dispatcher { get; private set; }
 
 		#region Singleton
 		private static Table mInstance;
@@ -94,19 +110,27 @@ namespace CoffeeTable
 
 		#endregion
 
+		#region PubSub
+
+		public static void Subscribe(object o)
+		{
+			var i = Instance;
+			i.mOnApplicationCreatedPublisher.Subscribe(o as IOnApplicationCreated);
+			i.mOnApplicationUpdatedPublisher.Subscribe(o as IOnApplicationUpdated);
+			i.mOnApplicationDestroyedPublisher.Subscribe(o as IOnApplicationDestroyed);
+		}
+
+		public static void Unsubscribe(object o)
+		{
+			var i = Instance;
+			i.mOnApplicationCreatedPublisher.Unsubscribe(o as IOnApplicationCreated);
+			i.mOnApplicationUpdatedPublisher.Unsubscribe(o as IOnApplicationUpdated);
+			i.mOnApplicationDestroyedPublisher.Unsubscribe(o as IOnApplicationDestroyed);
+		}
+
+		#endregion
+
 		#region Connection
-
-		public static void Subscribe (object o)
-		{
-			var i = Instance;
-			i.mOnApplicationsUpdatedPublisher.Subscribe(o as IOnApplicationsUpdated);
-		}
-
-		public static void Unsubscribe (object o)
-		{
-			var i = Instance;
-			i.mOnApplicationsUpdatedPublisher.Unsubscribe(o as IOnApplicationsUpdated);
-		}
 
 		public static bool RetryConnection ()
 		{
@@ -118,22 +142,34 @@ namespace CoffeeTable
 		{
 			lock (mMessageBuffer)
 			{
-				foreach (var newMessage in mMessageBuffer)
-					Messaging?.Receive(newMessage);
-				mMessageBuffer.Clear();
+				if (mMessageBuffer.Count() > 0)
+				{
+					foreach (var newMessage in mMessageBuffer)
+						Messaging?.Receive(newMessage);
+					mMessageBuffer.Clear();
+				}
 			}
 		}
 
 		private void Initialize ()
 		{
-			if (!AppSettings.IsApiEnabled) return;
-			EstablishConnection();
-			if (mServiceConnected) SubscribeToService();
+			if (!EstablishConnection())
+				Deinitialize();
 		}
 
-		private void EstablishConnection ()
+		private void Deinitialize()
 		{
-			if (mServiceConnected) return;
+			mOnline = false;
+			var provider = mProviderService;
+			mProviderService = null;
+			provider?.Dispose();
+			Messaging = null;
+		}
+
+		private bool EstablishConnection ()
+		{
+			if (!AppSettings.IsApiEnabled) return false; // API is disabled
+			if (mOnline) return true; // Connection already established
 
 			GetPortNumbers(ref mHttpPort, ref mTcpPort);
 
@@ -144,7 +180,7 @@ namespace CoffeeTable
 				Log.Warn($"Failed to retrieve service module ID for module: '{mModuleName}'. " +
 					$"If you are attempting to access this functionality while running in the editor, it is safe to ignore these warnings. " +
 					$"Otherwise, make sure that the service is running with the '{mModuleName}' module attached.");
-				return;
+				return false;
 			}
 			mModuleId = moduleId.Value;
 
@@ -155,18 +191,16 @@ namespace CoffeeTable
 				ModuleId = mModuleId
 			};
 
-			mProviderService.MessageReceived += HandleOnMessageReceived;
-			mProviderService.Disconnected += HandleOnServiceDisconnected;
+			mProviderService.Disconnected += Deinitialize;
+			mProviderService.MessageReceived += message =>
+			{
+				lock (mMessageBuffer) mMessageBuffer.Add(message);
+			};
 
 			Messaging = new MessagingHandler(mProviderService.Send);
 			Messaging.Register(this);
 
-			if (!mProviderService.StartProvider()) return;
-		}
-
-		private void SubscribeToService ()
-		{
-			if (mOnline) return;
+			if (!mProviderService.StartProvider()) return false; // Failed to connect TCP
 
 			// Subscribe to the service module
 			var subscriptionRequest = new ServiceSubscriptionRequest()
@@ -190,7 +224,7 @@ namespace CoffeeTable
 					Log.Warn("Failed to receive a response from the service after attempting to subscribe. " +
 						"If this application was not launched by the service and you are running in standalone, " +
 						"your application will not be able to access any service-side functionality.");
-					return;
+					return false; // Response timed out
 				}
 				ReadMessageBuffer();
 			}
@@ -199,7 +233,7 @@ namespace CoffeeTable
 			if (!subscriptionExchange.Success)
 			{
 				Log.Warn($"Failed to subscribe to service: {subscriptionExchange.Details}");
-				return;
+				return false; // Could not subscribe
 			}
 
 			mAppManifest = subscriptionExchange.Data.AppsManifest;
@@ -207,15 +241,7 @@ namespace CoffeeTable
 
 			Log.Out("Successfully subscribed to service.");
 			mOnline = true;
-		}
-
-		private void Deinitialize ()
-		{
-			mOnline = false;
-			var provider = mProviderService;
-			mProviderService = null;
-			provider?.Dispose();
-			Messaging = null;
+			return true;
 		}
 
 		private void GetPortNumbers (ref int httpPort, ref int tcpPort)
@@ -274,16 +300,6 @@ namespace CoffeeTable
 			}
 		}
 
-		private void HandleOnMessageReceived (Message message)
-		{
-			lock (mMessageBuffer) mMessageBuffer.Add(message);
-		}
-
-		private void HandleOnServiceDisconnected ()
-		{
-			Deinitialize();
-		}
-
 		#endregion
 
 		#region MonoBehaviour
@@ -291,6 +307,7 @@ namespace CoffeeTable
 		private void Awake()
 		{
 			EnsureSingleton();
+			Dispatcher = GetDispatcher();
 			Initialize();
 		}
 
@@ -312,20 +329,7 @@ namespace CoffeeTable
 
 		#endregion
 
-		#region CoffeeTable Messaging
-
-		[RequestHandler("update")]
-		private void OnApplicationsManifestChanged (Request<ApplicationInstanceInfo[]> request, Response<None> response)
-		{
-			if (mAppManifest == null) return;
-			mAppManifest.RunningApplications = request.Data;
-			mOnApplicationsUpdated?.Invoke(mAppManifest);
-			mOnApplicationsUpdatedPublisher.Publish(mAppManifest);
-		}
-
-		#endregion
-
-		#region Functionality
+		#region API
 		
 		/// <summary>
 		/// Attempts to set the fullscreen mode of this application on the coffee table.
@@ -334,7 +338,7 @@ namespace CoffeeTable
 		/// <returns>A task whose boolean result indicates the success of the operation. If <c>true</c>, the fullscreen mode of this application was successfully set.</returns>
 		public static async Task<bool> SetFullscreenAsync (bool fullscreen)
 		{
-			if (!Instance.mServiceConnected || !IsOnline) return false; 
+			if (!IsOnline) return false; 
 			var exchange = Instance.Messaging?.Send(1, "setFullscreenMode", fullscreen);
 			if (exchange == null) return false;
 			await exchange;
@@ -347,7 +351,7 @@ namespace CoffeeTable
 		/// </summary>
 		public static async void Quit ()
 		{
-			if (!Instance.mServiceConnected || !IsOnline)
+			if (!IsOnline)
 			{
 				ForceQuit();
 				return;
@@ -368,6 +372,52 @@ namespace CoffeeTable
 #endif
 		}
 
-#endregion
+		#endregion
+
+		private Dispatcher GetDispatcher ()
+		{
+			var dispatcher = gameObject.GetComponent<Dispatcher>();
+			if (dispatcher == null) dispatcher = gameObject.AddComponent<Dispatcher>();
+			return dispatcher;
+		}
+
+		[RequestHandler("update")]
+		private void OnApplicationsManifestChanged(Request<ApplicationInstanceInfo[]> request, Response<None> response)
+		{
+			Dispatcher.Dispatch(() => PublishApplicationsDelta(request.Data));
+		}
+
+		private void PublishApplicationsDelta(ApplicationInstanceInfo[] updatedInstances)
+		{
+			if (!mOnline || mAppManifest == null) return;
+			if (updatedInstances == null) return;
+
+			var created = updatedInstances.Except(mAppManifest.RunningApplications, ApplicationInstanceInfo.IdComparer);
+			var destroyed = mAppManifest.RunningApplications.Except(updatedInstances, ApplicationInstanceInfo.IdComparer);
+			var updated = TableExtensions.GetModified(mAppManifest.RunningApplications, updatedInstances,
+				(a, b) => ApplicationInstanceInfo.IdComparer.Equals(a, b),
+				(oldElement, newElement) => !ApplicationInstanceInfo.Equals(oldElement, newElement));
+
+			foreach (var createdApp in created)
+			{
+				if (createdApp.IsSelf() && !AppSettings.ReceiveUpdatesSelf) continue;
+				mOnApplicationCreatedEvent?.Invoke(createdApp);
+				mOnApplicationCreatedPublisher.Publish(createdApp);
+			}
+
+			foreach (var updatedApp in updated)
+			{
+				if (updatedApp.New.IsSelf() && !AppSettings.ReceiveUpdatesSelf) continue;
+				mOnApplicationUpdatedEvent?.Invoke(updatedApp);
+				mOnApplicationUpdatedPublisher.Publish(updatedApp);
+			}
+
+			foreach (var destroyedApp in destroyed)
+			{
+				if (destroyedApp.IsSelf() && !AppSettings.ReceiveUpdatesSelf) continue;
+				mOnApplicationDestroyedEvent?.Invoke(destroyedApp);
+				mOnApplicationDestroyedPublisher.Publish(destroyedApp);
+			}
+		}
 	}
 }

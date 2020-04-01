@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using CoffeeTable.Common.Utils;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,25 +40,6 @@ namespace CoffeeTable.Common.Manifests
 				&& other.MaxY == MaxY;
 		}
 
-		/*
-		 * See https://stackoverflow.com/a/34006336/10149816
-		 * for information concerning best algorithms for generation of
-		 * hashcodes that produce the fewest collisions.
-		 */
-		public override int GetHashCode()
-		{
-			const int seed = 1009;
-			const int factor = 9176;
-
-			unchecked
-			{
-				int hash = seed;
-				hash = (hash * factor) + MinX.GetHashCode();
-				hash = (hash * factor) + MinY.GetHashCode();
-				hash = (hash * factor) + MaxX.GetHashCode();
-				hash = (hash * factor) + MaxY.GetHashCode();
-				return hash;
-			}
-		}
+		public override int GetHashCode() => HashCode.Combine(MinX, MinY, MaxX, MaxY);
 	}
 }

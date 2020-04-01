@@ -30,6 +30,7 @@ public class AppSettingsEditor : Editor
 		public static readonly GUIContent apiSettingsEnabled = new GUIContent("Enabled", "Uncheck to turn off the CoffeeTable API and all its functionality.");
 		public static readonly GUIContent apiSettingsFallbackTcpPort = new GUIContent("Fallback TCP Port", "The TCP port that should be used to connect to the backend service's TCP server when no TCP port could be found otherwise.");
 		public static readonly GUIContent apiSettingsFallbackHttpPort = new GUIContent("Fallback HTTP Port", "The HTTP port that should be used to connect to the backend service's HTTP server when no HTTP port could be found otherwise.");
+		public static readonly GUIContent apiSettingsReceiveUpdatesSelf = new GUIContent("Receive Updates About Self", "Whether or not we should receive updates from the managing service when info about this application has changed.");
 	}
 
 	private SerializedProperty mFallbackHttpPort;
@@ -39,6 +40,7 @@ public class AppSettingsEditor : Editor
 	private SerializedProperty mDescription;
 	private SerializedProperty mLaunchInFullscreen;
 	private SerializedProperty mIsApiEnabled;
+	private SerializedProperty mReceiveUpdatesSelf;
 
 	private bool mShowAppSettings = false;
 	private bool mShowApiSettings = false;
@@ -53,6 +55,7 @@ public class AppSettingsEditor : Editor
 		mDescription = serializedObject.FindProperty(nameof(AppSettings.mDescription));
 		mLaunchInFullscreen = serializedObject.FindProperty(nameof(AppSettings.mLaunchInFullscreen));
 		mIsApiEnabled = serializedObject.FindProperty(nameof(AppSettings.mIsApiEnabled));
+		mReceiveUpdatesSelf = serializedObject.FindProperty(nameof(AppSettings.mReceiveUpdatesSelf));
 	}
 
 	public override void OnInspectorGUI()
@@ -87,6 +90,7 @@ public class AppSettingsEditor : Editor
 			EditorGUILayout.PropertyField(mIsApiEnabled, Styles.apiSettingsEnabled);
 			EditorGUILayout.PropertyField(mFallbackTcpPort, Styles.apiSettingsFallbackTcpPort);
 			EditorGUILayout.PropertyField(mFallbackHttpPort, Styles.apiSettingsFallbackHttpPort);
+			EditorGUILayout.PropertyField(mReceiveUpdatesSelf, Styles.apiSettingsReceiveUpdatesSelf);
 		}
 		EditorGUILayout.EndVertical();
 

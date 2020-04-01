@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace CoffeeTable.Publishers
 {
-  public abstract class GenericDataPublisher<TSub, TData> : IDataPublisher<TSub, TData>
+  internal abstract class GenericDataPublisher<TSub, TData> : IDataPublisher<TSub, TData>
   {
 
     private struct SubData
