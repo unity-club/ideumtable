@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using CoffeeTable;
-using UnityEditor.Compilation;
 using System.IO;
 using System;
 using UnityEditor;
@@ -16,7 +15,9 @@ public class RuntimeTest : MonoBehaviour, IOnApplicationCreated, IOnApplicationU
 	// Start is called before the first frame update
 	async void Start()
 	{
-		Table.Subscribe(this);
+		//Debug.Log($"Table is online: {Table.IsOnline}");
+		
+		//Table.Subscribe(this);
 		//Table.ReceiveUpdatesSelf = false;
 		//await Table.SetFullscreenAsync(true);
 		;

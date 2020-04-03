@@ -95,6 +95,7 @@ namespace CoffeeTable
 
 		private List<Message> mMessageBuffer = new List<Message>();
 		private TableProviderService mProviderService;
+		private Dispatcher mDispatcher;
 
 		private const string mModuleName = "coffeetable";
 		private int mModuleId = 0;
@@ -102,7 +103,6 @@ namespace CoffeeTable
 		private uint mApplicationId = 0;
 
 		public IMessagingHandler Messaging { get; private set; }
-		public Dispatcher Dispatcher { get; private set; }
 
 		#region Singleton
 		private static Table mInstance;
@@ -201,7 +201,7 @@ namespace CoffeeTable
 			Messaging = null;
 
 			// Publish on disconnected events
-			Dispatcher.Dispatch(() =>
+			mDispatcher.Dispatch(() =>
 			{
 				mOnTableDisconnectedEvent?.Invoke();
 				mOnTableDisconnectedPublisher.Publish();
@@ -249,7 +249,7 @@ namespace CoffeeTable
 			{
 				IsSimulator = Application.isEditor,
 				ProcessId = Process.GetCurrentProcess().Id,
-				SimulatedApplication = AppSettings.GetManifest()
+				SimulatedApplication = AppSettings.GetAppManifest()
 			};
 			var subscriptionExchange = Messaging.Send<ServiceSubscriptionResponse>(1, "subscribe", subscriptionRequest);
 
@@ -285,7 +285,7 @@ namespace CoffeeTable
 			mOnline = true;
 
 			// Publish on connected events
-			Dispatcher.Dispatch(() =>
+			mDispatcher.Dispatch(() =>
 			{
 				mOnTableConnectedEvent?.Invoke();
 				mOnTableConnectedPublisher.Publish();
@@ -359,7 +359,7 @@ namespace CoffeeTable
 			mReceiveUpdatesSelf = AppSettings.ReceiveUpdatesSelf;
 
 			EnsureSingleton();
-			Dispatcher = GetDispatcher();
+			mDispatcher = GetDispatcher();
 			Initialize();
 		}
 
@@ -436,7 +436,7 @@ namespace CoffeeTable
 		[RequestHandler("update")]
 		private void OnApplicationsManifestChanged(Request<ApplicationInstanceInfo[]> request, Response<None> response)
 		{
-			Dispatcher.Dispatch(() => PublishApplicationsDelta(request.Data));
+			mDispatcher.Dispatch(() => PublishApplicationsDelta(request.Data));
 		}
 
 		private void PublishApplicationsDelta(ApplicationInstanceInfo[] updatedInstances)
@@ -472,7 +472,6 @@ namespace CoffeeTable
 				mOnApplicationDestroyedEvent?.Invoke(destroyedApp);
 				mOnApplicationDestroyedPublisher.Publish(destroyedApp);
 			}
-
 		}
 	}
 }

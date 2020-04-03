@@ -9,7 +9,6 @@ using UnityEngine;
 
 namespace CoffeeTable
 {
-	[CreateAssetMenu(fileName = "AppSettings", menuName = "CoffeeTable/AppSettings")]
 	public class AppSettings : ScriptableObject
 	{
 		private static AppSettings mInstance;
@@ -68,17 +67,23 @@ namespace CoffeeTable
 		internal bool mReceiveUpdatesSelf = true;
 		public static bool ReceiveUpdatesSelf => Instance.mReceiveUpdatesSelf;
 
-		public static ApplicationManifest GetManifest ()
+		[SerializeField]
+		internal Texture2D mIcon;
+		public static Texture2D Icon => Instance.mIcon;
+
+		internal static ApplicationManifest GetAppManifest() => Instance.GetManifest();
+
+		internal ApplicationManifest GetManifest()
 		{
 			return new ApplicationManifest
 			{
-				Author = AuthorName,
-				Description = Description,
+				Author = mAuthorName,
+				Description = mDescription,
 				ExecutablePath = string.Empty,
 				LauncherName = string.Empty,
-				LaunchInFullscreen = LaunchInFullscreen,
-				Name = AppName,
-				Type = ApplicationType
+				LaunchInFullscreen = mLaunchInFullscreen,
+				Name = mAppName.Trim(),
+				Type = mApplicationType
 			};
 		}
 	}

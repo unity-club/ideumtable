@@ -9,6 +9,8 @@ namespace CoffeeTable.Logging
 {
 	internal class Log
 	{
+		internal delegate void LogDelegate(LogLevels levels, object s);
+
 		[Flags]
 		internal enum LogLevels
 		{
@@ -44,5 +46,7 @@ namespace CoffeeTable.Logging
 		{
 			mLogFormat = $"<b>[{ApplicationName}] [Build]</b> {{0}}"
 		};
+
+		private Log () { }
 	}
 }

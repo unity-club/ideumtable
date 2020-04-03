@@ -21,6 +21,7 @@ public class AppSettingsEditor : Editor
 		public static readonly GUIStyle boldFoldout;
 
 		public static readonly GUIContent appSettingsHeader = new GUIContent("App Settings", "The application settings hold various pieces of metadata about your application, such as its name, author, and description needed to identify your app.");
+		public static readonly GUIContent appSettingsIcon = new GUIContent("App Icon", "An icon that represents your app. This icon will be seen on the homescreen.");
 		public static readonly GUIContent appSettingsName = new GUIContent("App Name", "The name of your application. No two application names can be the same, so be sure to choose something unique!");
 		public static readonly GUIContent appSettingsAuthor = new GUIContent("Author(s)", "The people who made this application.");
 		public static readonly GUIContent appSettingsDescription = new GUIContent("Description", "A short description about the app and and what it does.");
@@ -62,6 +63,8 @@ public class AppSettingsEditor : Editor
 	{
 		serializedObject.Update();
 
+		AppSettings setting = target as AppSettings;
+
 		EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 		GUILayout.Label(Styles.titleText, EditorStyles.boldLabel);
 		EditorGUILayout.EndVertical();
@@ -73,6 +76,7 @@ public class AppSettingsEditor : Editor
 		mShowAppSettings = EditorGUILayout.Foldout(mShowAppSettings, Styles.appSettingsHeader, Styles.boldFoldout);
 		if (mShowAppSettings)
 		{
+			setting.mIcon = (Texture2D) EditorGUILayout.ObjectField(Styles.appSettingsIcon, setting.mIcon, typeof(Texture2D), false);
 			EditorGUILayout.PropertyField(mAppName, Styles.appSettingsName);
 			EditorGUILayout.PropertyField(mAuthorName, Styles.appSettingsAuthor);
 			EditorGUILayout.LabelField(Styles.appSettingsDescription);
@@ -93,6 +97,8 @@ public class AppSettingsEditor : Editor
 			EditorGUILayout.PropertyField(mReceiveUpdatesSelf, Styles.apiSettingsReceiveUpdatesSelf);
 		}
 		EditorGUILayout.EndVertical();
+
+		EditorGUI.indentLevel = 0;
 
 		if (serializedObject.ApplyModifiedProperties())
 			EditorUtility.SetDirty(target);

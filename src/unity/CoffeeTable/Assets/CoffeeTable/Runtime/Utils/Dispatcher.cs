@@ -5,9 +5,8 @@ using UnityEngine;
 
 namespace CoffeeTable.Utils
 {
-	public class Dispatcher : MonoBehaviour
+	internal class Dispatcher : MonoBehaviour
 	{
-
 		public event Action<Exception> ExceptionThrown;
 
 		private Queue<Action> _dispatchQueue = new Queue<Action>();

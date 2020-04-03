@@ -14,9 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mFallbackHttpPort: 8080
   mFallbackTcpPort: 4747
-  mAppName: 
-  mAuthorName: 
-  mDescription: 
+  mAppName: Hello World
+  mAuthorName: asdasd
+  mDescription: ds
   mLaunchInFullscreen: 0
   mApplicationType: 0
   mIsApiEnabled: 1
+  mReceiveUpdatesSelf: 1
+  mIcon: {fileID: 2800000, guid: 61270bb3ae090f34eb97b1fa2f6d97e0, type: 3}
