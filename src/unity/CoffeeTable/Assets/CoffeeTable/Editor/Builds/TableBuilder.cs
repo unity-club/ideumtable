@@ -12,6 +12,7 @@ using UnityEditor.Build.Reporting;
 using UnityEngine;
 using static CoffeeTable.Logging.Log;
 using System.IO.Compression;
+using CompressionLevel = System.IO.Compression.CompressionLevel;
 
 namespace CoffeeTable.Editor.Builds
 {
@@ -29,15 +30,19 @@ namespace CoffeeTable.Editor.Builds
 			public const string kBuildingPlayer = "Building Player";
 			public const string kBuildingPlayerPreparing = "Preparing to build player...";
 
-			public const string kSaveAppDialogTitle = "Choose location for .table file";
+			public const string kSaveAppDialogTitle = "Choose location for ." + kAppExtension + " file";
 			public const string kSaveAppDialogInvalidFileExtension = "Selected save path for built application had an invalid file extension. Built table apps must have the ." + kAppExtension + " extension.";
 			public const string kSaveAppDialogNoParentDirectory = "Parent directory for chosen save file path does not exist.";
 			public const string kAppExtension = "tableapp";
 
 			public const string kFinishingBuild = "Finishing Build";
-			public const string kCompressingContents = "Compressing archive contents to: {0}. This may take a few moments.";
+			public const string kCompressingContents = "Compressing archive...";
+			public const string kCompressingContentsFile = "Compressing {0}";
 
+			public const string kSavingArchiveOverwrite = "Overwriting old build...";
 			public const string kSavingArchiveNoPermissions = "Failed to compress build archive: did not have permissions to write to the chosen save file directory.";
+
+			public const string kValidatingSourceCode = "Validating source code...";
 		}
 
 		public delegate void ProgressHandler(string title, string description, float progress);
@@ -72,8 +77,9 @@ namespace CoffeeTable.Editor.Builds
 				LoggerDelegate?.Invoke(LogLevels.Error, Strings.kSaveAppDialogNoParentDirectory);
 				return BuildResult.Failed;
 			}
-			
+
 			// Before we begin build, let's validate the source code for any misused identifiers
+			ProgressDelegate?.Invoke(Strings.kBeginningBuild, Strings.kValidatingSourceCode, 0f);
 			if (!SourceValidator.ValidateSource())
 				return BuildResult.Failed;
 
@@ -123,7 +129,6 @@ namespace CoffeeTable.Editor.Builds
 			if (report.summary.result != BuildResult.Succeeded)
 				return report.summary.result;
 
-			ProgressDelegate?.Invoke(Strings.kFinishingBuild, string.Format(Strings.kCompressingContents, savePath), 0);
 
 			// Check for write permissions
 			if (!HasWritePermissions(savePathDirectory))
@@ -135,11 +140,14 @@ namespace CoffeeTable.Editor.Builds
 			// Allow overwrites
 			if (File.Exists(savePath))
 			{
+				ProgressDelegate?.Invoke(Strings.kFinishingBuild, Strings.kSavingArchiveOverwrite, 0f);
 				File.Delete(savePath);
 			}
-			ZipFile.CreateFromDirectory(tempDir, savePath);
-
+			ProgressDelegate?.Invoke(Strings.kFinishingBuild, string.Format(Strings.kCompressingContents, savePath), 0);
+			CompressArchiveFromDirectory(tempDir, savePath,
+				(file, progress) => ProgressDelegate?.Invoke(Strings.kFinishingBuild, string.Format(Strings.kCompressingContentsFile, file), progress));
 			;
+			LoggerDelegate?.Invoke(LogLevels.Out, $"Successfully built '{appManifest.Name}' to {savePath}");
 			return BuildResult.Succeeded;
 		}
 
@@ -206,6 +214,57 @@ namespace CoffeeTable.Editor.Builds
 			{
 				return false;
 			}
+		}
+
+		//
+		// Taken from ZipFile source:
+		// https://github.com/phofman/zip/blob/master/src/ZipFile.cs
+		// and repurposed to provide per-file progress callback
+		//
+		private static void CompressArchiveFromDirectory(string sourceDirectoryName, string destinationArchiveFileName, Action<string, float> onCompressFileCallback)
+		{
+			if (string.IsNullOrEmpty(sourceDirectoryName))
+				throw new ArgumentNullException("sourceDirectoryName");
+			if (string.IsNullOrEmpty(destinationArchiveFileName))
+				throw new ArgumentNullException("destinationArchiveFileName");
+
+			var filesToAdd = Directory.GetFiles(sourceDirectoryName, "*", SearchOption.AllDirectories);
+			var entryNames = GetArchiveEntryNames(filesToAdd, sourceDirectoryName, false);
+
+			using (var zipFileStream = new FileStream(destinationArchiveFileName, FileMode.Create))
+			using (var archive = new ZipArchive(zipFileStream, ZipArchiveMode.Create))
+			{
+				for (int i = 0; i < filesToAdd.Length; i++)
+				{
+					onCompressFileCallback?.Invoke(filesToAdd[i], (float)i / (filesToAdd.Length - 1));
+					archive.CreateEntryFromFile(filesToAdd[i], entryNames[i], CompressionLevel.Optimal);
+				}
+			}
+		}
+
+		//
+		// Taken from ZipFile source:
+		// https://github.com/phofman/zip/blob/master/src/ZipFile.cs
+		//
+		private static string[] GetArchiveEntryNames(string[] names, string sourceFolder, bool includeBaseName)
+		{
+			if (names == null || names.Length == 0)
+				return new string[0];
+
+			if (includeBaseName)
+				sourceFolder = Path.GetDirectoryName(sourceFolder);
+
+			int length = string.IsNullOrEmpty(sourceFolder) ? 0 : sourceFolder.Length;
+			if (length > 0 && sourceFolder != null && sourceFolder[length - 1] != Path.DirectorySeparatorChar && sourceFolder[length - 1] != Path.AltDirectorySeparatorChar)
+				length++;
+
+			var result = new string[names.Length];
+			for (int i = 0; i < names.Length; i++)
+			{
+				result[i] = names[i].Substring(length);
+			}
+
+			return result;
 		}
 	}
 }

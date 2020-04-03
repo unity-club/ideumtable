@@ -22,23 +22,28 @@ namespace CoffeeTable.Editor.Inspector
 		{
 			public const int margin = 5;
 			public static readonly GUIContent titleText = new GUIContent("Coffee Table Build");
-			public static readonly GUIContent scenesInBuild = EditorGUIUtility.TrTextContent("Scenes In Build", "Which scenes to include in the build");
-			public static readonly GUIContent addScenesTooltip = new GUIContent("Drag and drop scenes into the box below to select which scenes should appear in the built executable" +
+			public static readonly GUIContent scenesInBuild = EditorGUIUtility.TrTextContent("Scenes In Build", "Drag and drop scenes into the box below to select which scenes should appear in the built executable" +
 				" when this application is built to the coffee table, or click Add Open Scenes to add the currently open scenes automatically. " +
-				"Note that editting the list below will modify your included scenes when building for all platforms, not just for the coffee table.");
+				"Note that editing the list below will modify your included scenes when building for all platforms, not just for the coffee table.");
 			public static readonly GUIContent addOpenSource = EditorGUIUtility.TrTextContent("Add Open Scenes");
 			public static readonly GUIContent buildButton = EditorGUIUtility.TrTextContent("Build");
 			public static readonly GUIContent beginBuildTitle = new GUIContent("Begin Build");
 			public static readonly GUIContent buildSucceededNotification = new GUIContent("Build Succeeded");
 
+			public static readonly GUIStyle boldFoldout;
 			public static readonly GUIStyle tooltipWrapStyle;
 
 			static Styles()
 			{
 				tooltipWrapStyle = new GUIStyle(EditorStyles.label);
 				tooltipWrapStyle.wordWrap = true;
+
+				GUIStyle _boldFoldout = new GUIStyle(EditorStyles.foldout);
+				_boldFoldout.fontStyle = FontStyle.Bold;
+				boldFoldout = _boldFoldout;
 			}
 		}
+
 
 		private static readonly Regex applicationNamesRegex = new Regex(@"^[a-zA-Z0-9._\- ]*$");
 		private static readonly string[] applicationNamesInvalidBoundCharacters = new [] { ".", "_", "-" };
@@ -49,9 +54,10 @@ namespace CoffeeTable.Editor.Inspector
 		private const string BuildErrorOk = "Ok";
 
 		private AppSettings mSettings;
-		private UnityEditor.Editor mSettingsEditor;
+		private AppSettingsEditor mSettingsEditor;
 
 		private Vector2 mScrollPosition;
+		private bool mShowScenes;
 
 		[SerializeField]
 		private TreeViewState mTreeViewState;
@@ -77,27 +83,28 @@ namespace CoffeeTable.Editor.Inspector
 
 			using (new GUILayout.VerticalScope(EditorStyles.helpBox))
 			{
-				GUILayout.Label(Styles.scenesInBuild, EditorStyles.boldLabel);
-
-				using (new GUILayout.HorizontalScope())
+				mShowScenes = EditorGUILayout.Foldout(mShowScenes, Styles.scenesInBuild, Styles.boldFoldout);
+				if (mShowScenes)
 				{
-					GUILayout.Space(Styles.margin);
-					using (new GUILayout.VerticalScope())
+					using (new GUILayout.HorizontalScope())
 					{
-						GUILayout.Label(Styles.addScenesTooltip, Styles.tooltipWrapStyle);
 						GUILayout.Space(Styles.margin);
-						Rect rect = GUILayoutUtility.GetRect(0, position.width, 100, position.height);
-						mTreeView.OnGUI(rect);
-						using (new GUILayout.HorizontalScope())
+						using (new GUILayout.VerticalScope())
 						{
-							GUILayout.FlexibleSpace();
-							if (GUILayout.Button(Styles.addOpenSource))
-								AddOpenScenes();
+							GUILayout.Space(Styles.margin);
+							Rect rect = GUILayoutUtility.GetRect(0, position.width, 100, position.height);
+							mTreeView.OnGUI(rect);
+							using (new GUILayout.HorizontalScope())
+							{
+								GUILayout.FlexibleSpace();
+								if (GUILayout.Button(Styles.addOpenSource))
+									AddOpenScenes();
+							}
 						}
+						GUILayout.Space(Styles.margin);
 					}
 					GUILayout.Space(Styles.margin);
 				}
-				GUILayout.Space(Styles.margin);
 			}
 
 		}
@@ -175,19 +182,23 @@ namespace CoffeeTable.Editor.Inspector
 
 		private void OnEnable()
 		{
+			minSize = new Vector2(360, minSize.y);
 			mSettings = MenuItems.GetAppSettings(false);
 			if (mSettings == null)
 			{
 				Close();
 				return;
 			}
-			mSettingsEditor = UnityEditor.Editor.CreateEditor(mSettings);
+			mSettingsEditor = UnityEditor.Editor.CreateEditor(mSettings) as AppSettingsEditor;
+			mSettingsEditor.IndentHeaders = false;
 			Selection.activeObject = null;
 		}
 
 		private void OnGUI()
 		{
-			using (var scrollScope = new GUILayout.ScrollViewScope(mScrollPosition, false, true, GUILayout.ExpandWidth(true)))
+			EditorGUIUtility.labelWidth = 190;
+
+			using (var scrollScope = new GUILayout.ScrollViewScope(mScrollPosition, false, false, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
 			{
 				mScrollPosition = scrollScope.scrollPosition;
 
@@ -221,14 +232,10 @@ namespace CoffeeTable.Editor.Inspector
 				using (new EditorGUI.DisabledGroupScope(errors.Any()))
 				{
 					GUILayout.Space(Styles.margin);
-					GUILayout.BeginHorizontal();
-					GUILayout.FlexibleSpace();
 
-					bool buildButtonPressed = GUILayout.Button(Styles.buildButton);
-					if (buildButtonPressed) BeginBuild();
+					if (GUILayout.Button(Styles.buildButton))
+						BeginBuild();
 
-					GUILayout.Space(Styles.margin);
-					if (!buildButtonPressed) GUILayout.EndHorizontal();
 					GUILayout.Space(Styles.margin);
 				}
 			}

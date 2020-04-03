@@ -145,7 +145,7 @@
             </ListBox.ItemContainerStyle>
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <UniformGrid Columns="3" Margin="8,0,8,0"/>
+                    <UniformGrid Columns="3" Margin="8,0,8,0" />
                 </ItemsPanelTemplate>
             </ListBox.ItemsPanel>
             <ListBox.ItemTemplate>

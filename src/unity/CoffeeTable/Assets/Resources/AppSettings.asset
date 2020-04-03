@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mFallbackHttpPort: 8080
   mFallbackTcpPort: 4747
-  mAppName: Hello World
+  mAppName: big-boy
   mAuthorName: asdasd
   mDescription: ds
   mLaunchInFullscreen: 0

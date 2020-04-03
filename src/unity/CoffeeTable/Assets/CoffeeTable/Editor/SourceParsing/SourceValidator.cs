@@ -69,7 +69,7 @@ namespace CoffeeTable.Editor.SourceParsing
 					Log.BuildLog.LogError($"Failed to build project for table because an invalid identifier was found:\n" +
 						$"'{match.Identifier}' at line {match.LineNumber}, position {match.Position} in file '{file}'.\n" +
 						$"You are attempting to access the fullscreen and/or resolution settings provided by Unity in the {nameof(UnityEngine.Screen)} class. " +
-						$"Accessing these settings may break the backend service when your application is launched on the coffee table. " +
+						$"Accessing these settings may break the backend service running on the coffee table when your application is launched. " +
 						$"Instead of using these identifiers, use the methods provided by the {nameof(Table)} class to interface with the backend service running on the coffee table.");
 					return false;
 				}

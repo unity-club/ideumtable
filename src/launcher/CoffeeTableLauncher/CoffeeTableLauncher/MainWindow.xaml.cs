@@ -162,6 +162,11 @@ namespace CoffeeTableLauncher
 				mAppBindings.Add(binding);
 			}
 
+			//for (int i = 0; i < 4; i++)
+			//{
+			//	mAppBindings.Add(mAppBindings[mAppBindings.Count - 1]);
+			//}
+
 			// alphabetize this list
 			mAppBindings.Sort((a, b) => a.Name.CompareTo(b.Name));
 
