@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mFallbackHttpPort: 8080
   mFallbackTcpPort: 4747
-  mAppName: big-boy
-  mAuthorName: asdasd
-  mDescription: ds
+  mAppName: My App
+  mAuthorName: Jacob Roberts-Baca
+  mDescription: This is really cool.
   mLaunchInFullscreen: 0
   mApplicationType: 0
   mIsApiEnabled: 1
