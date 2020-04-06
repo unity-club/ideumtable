@@ -11,7 +11,7 @@ This guide will show you how to create a GitHub repository for your app on GitHu
 
 First things first, you'll need to create a repository on the GitHub website. A repository will hold the contents of your project online so that you can share your work and easily access it across computers. You can do this by logging into [GitHub](https://github.com/) from your browser and clicking the plus arrow in the top right corner of the page and selecting 'New Repository'.
 
-<img src="images/creatingrepo/addrepogithub.png" width="300">
+<img src="images/creatingrepo/addrepogithub.PNG" width="300">
 
 From there, you'll want to do the following.  
 1. Give your repository a short name that describes it and sums up what it does. For example, if your app is a chess app, then you might name the repository *ChessApp*. 
@@ -21,29 +21,29 @@ From there, you'll want to do the following.
 5. Select **Unity** for this repo's `.gitignore` file. The `.gitignore` file will prevent your project from being cluttered with Unity-specific metadata files that do not need to be included in the repository.
 6. Click **Create repository**.
 
-<img src="images/creatingrepo/creatingrepogithub.png" width="500">
+<img src="images/creatingrepo/creatingrepogithub.PNG" width="500">
 
 ## Inviting Users
 
 By now, you'll have a repository created on GitHub. Before moving on, you'll want to make sure to add some collaborators. Head over to the **Settings** page on your repo:
 
-<img src="images/creatingrepo/reposettings.png" width="700">
+<img src="images/creatingrepo/reposettings.PNG" width="700">
 
 From there, head over to the **Manage access** page:
 
-<img src="images/creatingrepo/repoaccess.png" width="200">
+<img src="images/creatingrepo/repoaccess.PNG" width="200">
 
 GitHub may ask you to confirm your password. If so, enter it now. On the **Manage access** page, you can invite collaborators to work on your project. You'll want to invite the dedicated Unity Club account, as well as any others that you'd like to work on your project with you. Click **Invite a collaborator**.
 
-<img src="images/creatingrepo/repoinvite.png" width="500">
+<img src="images/creatingrepo/repoinvite.PNG" width="500">
 
 Add the [**unity-club**](https://github.com/unity-club) account as a collaborator. 
 
-<img src="images/creatingrepo/repounityclub.png" width="500">
+<img src="images/creatingrepo/repounityclub.PNG" width="500">
 
-And copy the invite link by clicking the <img src="images/creatingrepo/copylinkicon.png" width=20> icon next to the invited user's name.
+And copy the invite link by clicking the <img src="images/creatingrepo/copylinkicon.PNG" width=20> icon next to the invited user's name.
 
-<img src="images/creatingrepo/repocopylink.png" width="500">
+<img src="images/creatingrepo/repocopylink.PNG" width="500">
 
 Once you've copied the invite link, send an email to me at [robj210@aa.edu](mailto:robj210@aa.edu) with the invite link. Repeat this process of entering the usernames of your collaborators and sending out invite links for each of the people that you want to help out on your project.
 
@@ -57,11 +57,11 @@ If you've never used GitHub Desktop before, follow the steps to log in and get g
 
 Upon launching GitHub Desktop for the first time, you should see a screen like this:
 
-<img src="images/creatingrepo/gitdesktop.png" width="600">
+<img src="images/creatingrepo/gitdesktop.PNG" width="600">
 
 Click **Sign in to GitHub.<span></span>com**. From there, enter your username and password and click **Sign in**.
 
-<img src="images/creatingrepo/gitdesktopsignin.png" width="300">
+<img src="images/creatingrepo/gitdesktopsignin.PNG" width="300">
 
 You'll be asked to configure Git. You can leave the Name and Email fields how they are, these will be used to identify who you are when you make updates to your repository. Click **Continue**, and then click **Finish**. 
 
@@ -69,18 +69,18 @@ You'll be asked to configure Git. You can leave the Name and Email fields how th
 
 If this is your first time using GitHub desktop, you should now see a page with multiple options. Choose **Clone a repository from the Internet...** If you've used GitHub desktop before, go to **File > Clone repository**.
 
-<img src="images/creatingrepo/gitdesktopclone.png" width="400">
-<img src="images/creatingrepo/gitdesktopexistingclonerepo.png" width="200">
+<img src="images/creatingrepo/gitdesktopclone.PNG" width="400">
+<img src="images/creatingrepo/gitdesktopexistingclonerepo.PNG" width="200">
 
-You should now see a list of repositories under the **Github.com** tab. Choose the repository that you created up above, and optionally choose a location under **Local path** for where the repository should be stored on your computer. If you don't see any repositories listed, hit the <img src="images/creatingrepo/gitdesktoprefreshicon.png" width=30> icon. 
+You should now see a list of repositories under the **Github.com** tab. Choose the repository that you created up above, and optionally choose a location under **Local path** for where the repository should be stored on your computer. If you don't see any repositories listed, hit the <img src="images/creatingrepo/gitdesktoprefreshicon.PNG" width=30> icon. 
 
 If you still do not see your repository, go back into your browser and go to your repository's main page. Click the green button in the top right that says **Clone or download**, and copy the link to your repository:
 
-<img src="images/creatingrepo/gitcopylink.png" width="500">
+<img src="images/creatingrepo/gitcopylink.PNG" width="500">
 
 Then, in GitHub desktop, navigate to the **URL** tab in the "Clone a repository" dialog:
 
-<img src="images/creatingrepo/gitdesktopurlclone.png" width="500">
+<img src="images/creatingrepo/gitdesktopurlclone.PNG" width="500">
 
 And paste the link you just copied into the field that says **URL or username/repository**.
 
@@ -90,8 +90,8 @@ Now, click the **Clone** button at the bottom of the page. Your repository will 
 
 To create a new Unity project for your app inside of the repository you just created and downloaded, first navigate to the folder where you downloaded your repository. If you don't know where that is, head back into GitHub Desktop, click on your repository in the top left, right click on your repository name, and click **Show in Explorer/View in Finder**. This will go to the location of your repository on your computer. 
 
-<img src="images/creatingrepo/openrepodir1.png" width="300">
-<img src="images/creatingrepo/openrepodir2.png" height="190">  
+<img src="images/creatingrepo/openrepodir1.PNG" width="300">
+<img src="images/creatingrepo/openrepodir2.PNG" height="190">  
 
 Once you have navigated to this folder, create another folder inside of it called `src`. The `src` folder will hold your Unity project inside of it, and will keep your repo's Unity files separate from things like documentation or builds of your app. Your repo folder should look like this now:
 
@@ -104,11 +104,11 @@ myrepository/
 
 Now that you have a `src` folder in your repository, open up the Unity Hub. Go to the **Projects** tab on the left hand side, and click **New** in the top right corner:
 
-<img src="images/creatingrepo/unitynewproject.png" width="600">
+<img src="images/creatingrepo/unitynewproject.PNG" width="600">
 
 This will open a dialog to create a new project. Leave the project template as **3D**, give your app a fitting name, and set the project's location to the `src` folder that you just created:
 
-<img src="images/creatingrepo/unitycreateproject.png" width="600">
+<img src="images/creatingrepo/unitycreateproject.PNG" width="600">
 
 Click **Create**, and unity will generate the project for you in a folder inside the `src` directory. One more important thing! You need to move the `.gitignore` file from your repo's root directory into the unity project folder. The `.gitignore` file will selectively ignore Unity-specific temp files, but only if it is inside a Unity project. Your repo should now look like this:
 ```
@@ -128,13 +128,13 @@ Pushing updates to GitHub is very simple with GitHub Desktop. Once you have made
 
 To push your changes, go back into GitHub desktop. Once you've made changes to any files in your project, these changes should appear on the left hand column of the GitHub Desktop window:
 
-<img src="images/creatingrepo/pushing.png" width="600">
+<img src="images/creatingrepo/pushing.PNG" width="600">
 
 Here, you can select the files you want to upload to the server, and see a list of line by line changes that you have made for each of these files on the right hand side of the screen. But before you push your changes, you must **commit** your changes. A **commit** is a batch of changes that you are uploading to the server all at once. You can push multiple commits at one time.
 
 To commit your changes, enter a title for your commit in the bottom left and give your commit a description. Try to be descriptive when you log your commits so that others will know what you've done and so that you have a log of the changes in your project as you develop it. Then hit **Commit to master** to create the commit, and then click on the **Push origin** button at the top to send your changes to the server.
 
-<img src="images/creatingrepo/gitdesktoppush.png" width="600">
+<img src="images/creatingrepo/gitdesktoppush.PNG" width="600">
 
 Now you are ready to begin developing your app! Remember to push any time you make progress. Push early, and push often.
 
@@ -142,7 +142,7 @@ Now you are ready to begin developing your app! Remember to push any time you ma
 
 If you are working on a project with multiple people involved, it is wise to **pull** anyone else's changes before you begin working. To pull changes, go back into GitHub Desktop and click **Pull origin**. If you don't see this button, you may have to click **Fetch origin** first.
 
-<img src="images/creatingrepo/gitdesktoppulling.png" width="600">
+<img src="images/creatingrepo/gitdesktoppulling.PNG" width="600">
 
 If you are working on a project with multiple people, you should **always** check for other people's changes and pull them first before working. Otherwise, you may run into conflicts down the line if you have made changes that overlap another person's changes. It is always best to communicate with eachother about who will work on what part of the project at what time.
 
