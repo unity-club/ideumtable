@@ -73,8 +73,9 @@ If this is your first time using GitHub desktop, you should now see a page with 
 
 If you've used GitHub desktop before, go to **File > Clone repository**.
 
-<img src="images/creatingrepo/gitdesktopclone.PNG" width="400">
-<img src="images/creatingrepo/gitdesktopexistingclonerepo.PNG" width="200">
+<p>
+<img src="images/creatingrepo/gitdesktopclone.PNG" width="400"/> <img src="images/creatingrepo/gitdesktopexistingclonerepo.png" width="200"/>
+</p>
 
 On the **Github.com** tab, you should see a list of your repositories. Choose the repository that you created up above, and optionally choose a location under **Local path** for where the repository should be stored on your computer. If you don't see any repositories listed, hit the <img src="images/creatingrepo/gitdesktoprefreshicon.PNG" width=30> icon. 
 
@@ -94,8 +95,9 @@ Now, click the **Clone** button at the bottom of the page. Your repository will 
 
 Now that you've downloaded your repository to your computer, you'll want to create a new Unity project for your app inside of the repository. To do this, first navigate to the folder where you downloaded your repository. If you don't know where that is, head back into GitHub Desktop, click on your repository in the top left, right click on your repository name, and click **Show in Explorer/View in Finder**. This will go to the location of your repository on your computer. 
 
-<img src="images/creatingrepo/openrepodir1.PNG" width="300">
-<img src="images/creatingrepo/openrepodir2.PNG" height="190">  
+<p>
+<img src="images/creatingrepo/openrepodir1.PNG" width="300"/> <img src="images/creatingrepo/openrepodir2.png" height="190"/>
+</p>
 
 Once you have navigated to this folder, create another folder inside of it called `src`. The `src` folder will hold your Unity project inside of it, and will keep your repo's Unity files separate from things like documentation or builds of your app. Your repo folder should look like this now:
 
