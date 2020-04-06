@@ -126,7 +126,7 @@ myrepository/
     README.md
 ```
 
- Now you are ready to start developing your app in Unity! But first, you should push your changes to the GitHub.
+ Now you are ready to start developing your app in Unity! But first, you should push your changes to GitHub.
 
 ## Pushing changes to GitHub
 
